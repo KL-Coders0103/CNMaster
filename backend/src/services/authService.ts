@@ -11,13 +11,14 @@ import {
   verifyUserEmail,
   createRefreshToken,
   findUserByIdentifier,
+  findRefreshToken,
 } from "../repositories/authRepository";
 
-import { LoginInput, RegisterInput, VerifyEmailInput } from "../validations/authValidation";
+import { LoginInput, RegisterInput, VerifyEmailInput, RefreshTokenInput } from "../validations/authValidation";
 
 import { hashPassword } from "../utils/passwordUtils";
 import { generateOtp, getOtpExpiry } from "../utils/otpUtils";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtUtils";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwtUtils";
 
 export const registerUser = async (
   registerData: RegisterInput
@@ -370,6 +371,89 @@ export const loginUser = async (
           user.mobileNumber,
         role: user.role,
       },
+    },
+  };
+};
+
+export const refreshAccessToken = async (
+  refreshData: RefreshTokenInput
+) => {
+  const { refreshToken } = refreshData;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Verify JWT
+  |--------------------------------------------------------------------------
+  */
+
+  let decoded;
+
+  try {
+    decoded = verifyRefreshToken(refreshToken);
+  } catch {
+    throw new Error("Invalid refresh token");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Token Type Check
+  |--------------------------------------------------------------------------
+  */
+
+  if (decoded.type !== "refresh") {
+    throw new Error("Invalid refresh token");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Find Token in Database
+  |--------------------------------------------------------------------------
+  */
+
+  const storedToken =
+    await findRefreshToken(refreshToken);
+
+  if (!storedToken) {
+    throw new Error("Refresh token not found");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Revoked Check
+  |--------------------------------------------------------------------------
+  */
+
+  if (storedToken.isRevoked) {
+    throw new Error("Refresh token revoked");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Expiry Check
+  |--------------------------------------------------------------------------
+  */
+
+  if (storedToken.expiresAt < new Date()) {
+    throw new Error("Refresh token expired");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Generate New Access Token
+  |--------------------------------------------------------------------------
+  */
+
+  const accessToken =
+    generateAccessToken({
+      userId: storedToken.user.id,
+      role: storedToken.user.role,
+    });
+
+  return {
+    success: true,
+    message: "Access token refreshed",
+    data: {
+      accessToken,
     },
   };
 };
