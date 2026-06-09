@@ -44,4 +44,20 @@ export const registerSchema = z.object({
     .min(1, "Section is required"),
 });
 
+export const verifyEmailSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("Invalid email address")
+    .transform((email) => email.toLowerCase()),
+
+  otp: z
+    .string()
+    .regex(/^[0-9]{6}$/, "OTP must be exactly 6 digits"),
+});
+
+export type VerifyEmailInput = z.infer<
+  typeof verifyEmailSchema
+>;
+
 export type RegisterInput = z.infer<typeof registerSchema>;

@@ -87,7 +87,6 @@ export const findOtpForVerification = async (
       email,
       otp,
       purpose,
-      isUsed: false,
     },
   });
 };

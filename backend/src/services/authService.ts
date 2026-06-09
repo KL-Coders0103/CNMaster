@@ -6,9 +6,12 @@ import {
   createUser,
   upsertEmailOtp,
   findActiveOtp,
+  findOtpForVerification,
+  markOtpAsUsed,
+  verifyUserEmail,
 } from "../repositories/authRepository";
 
-import { RegisterInput } from "../validations/authValidation";
+import { RegisterInput, VerifyEmailInput } from "../validations/authValidation";
 
 import { hashPassword } from "../utils/passwordUtils";
 import { generateOtp, getOtpExpiry } from "../utils/otpUtils";
@@ -173,5 +176,90 @@ export const registerUser = async (
   return {
     success: true,
     message: "OTP sent successfully",
+  };
+};
+
+export const verifyEmail = async (
+  verifyData: VerifyEmailInput
+) => {
+  const { email, otp } = verifyData;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Find OTP
+  |--------------------------------------------------------------------------
+  */
+
+  const emailOtp = await findOtpForVerification(
+    email,
+    otp,
+    OtpPurpose.registration
+  );
+
+  if (!emailOtp) {
+    throw new Error("Invalid OTP");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Already Used
+  |--------------------------------------------------------------------------
+  */
+
+  if (emailOtp.isUsed) {
+    throw new Error("OTP has already been used");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Expired OTP
+  |--------------------------------------------------------------------------
+  */
+
+  if (emailOtp.expiresAt < new Date()) {
+    throw new Error("OTP has expired");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | User Exists
+  |--------------------------------------------------------------------------
+  */
+
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Already Verified
+  |--------------------------------------------------------------------------
+  */
+
+  if (user.isEmailVerified) {
+    throw new Error("Email already verified");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Verify User
+  |--------------------------------------------------------------------------
+  */
+
+  await verifyUserEmail(user.id);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Mark OTP Used
+  |--------------------------------------------------------------------------
+  */
+
+  await markOtpAsUsed(emailOtp.id);
+
+  return {
+    success: true,
+    message: "Email verified successfully",
   };
 };
