@@ -514,3 +514,21 @@ export const logoutUser = async (
     message: "Logged out successfully",
   };
 };
+
+export const logoutAllUser = async (
+  userId: string
+) => {
+  /*
+  |--------------------------------------------------------------------------
+  | Revoke All Active Refresh Tokens
+  |--------------------------------------------------------------------------
+  */
+
+  await revokeAllRefreshTokens(userId);
+
+  return {
+    success: true,
+    message:
+      "Logged out from all devices successfully",
+  };
+};

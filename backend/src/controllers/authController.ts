@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { loginSchema, registerSchema, verifyEmailSchema, refreshTokenSchema, logoutSchema } from "../validations/authValidation";
-import { loginUser, registerUser, verifyEmail, refreshAccessToken, logoutUser } from "../services/authService";
+import { loginUser, registerUser, verifyEmail, refreshAccessToken, logoutUser, logoutAllUser } from "../services/authService";
 
 export const register = async (
   req: Request,
@@ -127,6 +127,42 @@ export const logoutController = async (
 
     const result = await logoutUser(
       validatedData
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const logoutAllController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+
+      return;
+    }
+
+    const result = await logoutAllUser(
+      req.user.userId
     );
 
     res.status(200).json(result);
