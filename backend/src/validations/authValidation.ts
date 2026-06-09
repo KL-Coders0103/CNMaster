@@ -74,6 +74,13 @@ export const refreshTokenSchema = z.object({
     .min(1, "Refresh token is required"),
 });
 
+export const logoutSchema = z.object({
+  refreshToken: z
+    .string()
+    .trim()
+    .min(1, "Refresh token is required"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export type VerifyEmailInput = z.infer<
@@ -86,4 +93,8 @@ typeof loginSchema
 
 export type RefreshTokenInput = z.infer<
   typeof refreshTokenSchema
+>;
+
+export type LogoutInput = z.infer<
+  typeof logoutSchema
 >;

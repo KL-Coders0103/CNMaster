@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
-import { loginSchema, registerSchema, verifyEmailSchema, refreshTokenSchema } from "../validations/authValidation";
-import { loginUser, registerUser, verifyEmail, refreshAccessToken } from "../services/authService";
+import { loginSchema, registerSchema, verifyEmailSchema, refreshTokenSchema, logoutSchema } from "../validations/authValidation";
+import { loginUser, registerUser, verifyEmail, refreshAccessToken, logoutUser } from "../services/authService";
 
 export const register = async (
   req: Request,
@@ -98,6 +98,36 @@ export const refreshAccessTokenController = async (
     const validatedData = refreshTokenSchema.parse(req.body);
 
     const result = await refreshAccessToken(validatedData);
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const logoutController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const validatedData =
+      logoutSchema.parse(req.body);
+
+    const result = await logoutUser(
+      validatedData
+    );
 
     res.status(200).json(result);
   } catch (error) {

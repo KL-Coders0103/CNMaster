@@ -12,9 +12,11 @@ import {
   createRefreshToken,
   findUserByIdentifier,
   findRefreshToken,
+  revokeRefreshToken,
+  revokeAllRefreshTokens
 } from "../repositories/authRepository";
 
-import { LoginInput, RegisterInput, VerifyEmailInput, RefreshTokenInput } from "../validations/authValidation";
+import { LoginInput, RegisterInput, VerifyEmailInput, RefreshTokenInput, LogoutInput } from "../validations/authValidation";
 
 import { hashPassword } from "../utils/passwordUtils";
 import { generateOtp, getOtpExpiry } from "../utils/otpUtils";
@@ -455,5 +457,60 @@ export const refreshAccessToken = async (
     data: {
       accessToken,
     },
+  };
+};
+
+export const logoutUser = async (
+  logoutData: LogoutInput
+) => {
+  const { refreshToken } = logoutData;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Verify JWT
+  |--------------------------------------------------------------------------
+  */
+
+  try {
+    verifyRefreshToken(refreshToken);
+  } catch {
+    throw new Error("Invalid refresh token");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Find Token in Database
+  |--------------------------------------------------------------------------
+  */
+
+  const storedToken = await findRefreshToken(
+    refreshToken
+  );
+
+  if (!storedToken) {
+    throw new Error("Refresh token not found");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Already Logged Out
+  |--------------------------------------------------------------------------
+  */
+
+  if (storedToken.isRevoked) {
+    throw new Error("Already logged out");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Revoke Token
+  |--------------------------------------------------------------------------
+  */
+
+  await revokeRefreshToken(refreshToken);
+
+  return {
+    success: true,
+    message: "Logged out successfully",
   };
 };
