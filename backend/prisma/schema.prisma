@@ -34,6 +34,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
 }
 
 model EmailOtp {
@@ -54,4 +56,21 @@ model EmailOtp {
   updatedAt     DateTime    @updatedAt
 
   @@unique([email, purpose])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+
+  token       String   @unique
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt   DateTime
+
+  isRevoked   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
 }

@@ -116,3 +116,54 @@ export const verifyUserEmail = async (
     },
   });
 };
+
+export const findUserByIdentifier = async (
+  identifier: string
+): Promise<User | null> => {
+  return prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          email: identifier.toLowerCase(),
+        },
+        {
+          mobileNumber: identifier,
+        },
+      ],
+    },
+  });
+};
+
+export const createRefreshToken = async (
+  data: Prisma.RefreshTokenCreateInput
+) => {
+  return prisma.refreshToken.create({
+    data,
+  });
+};
+
+export const findRefreshToken = async (
+  token: string
+) => {
+  return prisma.refreshToken.findUnique({
+    where: {
+      token,
+    },
+    include: {
+      user: true,
+    },
+  });
+};
+
+export const revokeRefreshToken = async (
+  token: string
+) => {
+  return prisma.refreshToken.update({
+    where: {
+      token,
+    },
+    data: {
+      isRevoked: true,
+    },
+  });
+};

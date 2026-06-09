@@ -56,6 +56,21 @@ export const verifyEmailSchema = z.object({
     .regex(/^[0-9]{6}$/, "OTP must be exactly 6 digits"),
 });
 
+export const loginSchema = z.object({
+  identifier: z
+    .string()
+    .trim()
+    .min(1, "Email or mobile number is required"),
+
+  password: z
+    .string()
+    .min(1, "Password is required"),
+});
+
+export type LoginInput = z.infer<
+  typeof loginSchema
+>;
+
 export type VerifyEmailInput = z.infer<
   typeof verifyEmailSchema
 >;

@@ -1,5 +1,5 @@
 import { OtpPurpose } from "@prisma/client";
-
+import bcrypt from "bcrypt";
 import {
   findUserByEmail,
   findUserByMobile,
@@ -9,12 +9,15 @@ import {
   findOtpForVerification,
   markOtpAsUsed,
   verifyUserEmail,
+  createRefreshToken,
+  findUserByIdentifier,
 } from "../repositories/authRepository";
 
-import { RegisterInput, VerifyEmailInput } from "../validations/authValidation";
+import { LoginInput, RegisterInput, VerifyEmailInput } from "../validations/authValidation";
 
 import { hashPassword } from "../utils/passwordUtils";
 import { generateOtp, getOtpExpiry } from "../utils/otpUtils";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwtUtils";
 
 export const registerUser = async (
   registerData: RegisterInput
@@ -261,5 +264,112 @@ export const verifyEmail = async (
   return {
     success: true,
     message: "Email verified successfully",
+  };
+};
+
+export const loginUser = async (
+  loginData: LoginInput
+) => {
+  const { identifier, password } = loginData;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Find User
+  |--------------------------------------------------------------------------
+  */
+
+  const user = await findUserByIdentifier(
+    identifier
+  );
+
+  if (!user) {
+    throw new Error(
+      "Invalid email/mobile or password"
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Email Verification Check
+  |--------------------------------------------------------------------------
+  */
+
+  if (!user.isEmailVerified) {
+    throw new Error(
+      "Please verify your email first"
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Password Check
+  |--------------------------------------------------------------------------
+  */
+
+  const isPasswordValid =
+    await bcrypt.compare(
+      password,
+      user.password
+    );
+
+  if (!isPasswordValid) {
+    throw new Error(
+      "Invalid email/mobile or password"
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Generate Tokens
+  |--------------------------------------------------------------------------
+  */
+
+  const accessToken =
+    generateAccessToken({
+      userId: user.id,
+      role: user.role,
+    });
+
+  const refreshToken =
+    generateRefreshToken({
+      userId: user.id,
+      role: user.role,
+      type: "refresh",
+    });
+
+  /*
+  |--------------------------------------------------------------------------
+  | Store Refresh Token
+  |--------------------------------------------------------------------------
+  */
+
+  await createRefreshToken({
+    token: refreshToken,
+    expiresAt: new Date(
+      Date.now() +
+        30 * 24 * 60 * 60 * 1000
+    ),
+    user: {
+      connect: {
+        id: user.id,
+      },
+    },
+  });
+
+  return {
+    success: true,
+    message: "Login successful",
+    data: {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        mobileNumber:
+          user.mobileNumber,
+        role: user.role,
+      },
+    },
   };
 };
