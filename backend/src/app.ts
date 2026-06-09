@@ -4,7 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import healthRoutes from "./routes/healthRoutes";
-import { errorHandler } from "./middlewares/errorMiddleware";
+import { errorMiddleware } from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/authRoutes";
 
 const app: Application = express();
@@ -31,7 +31,7 @@ app.use(
     res: Response,
     next: NextFunction
   ) => {
-    errorHandler(err, req, res, next);
+    errorMiddleware(err, req, res, next);
   }
 );
 

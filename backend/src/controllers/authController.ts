@@ -1,184 +1,83 @@
 import { Request, Response } from "express";
 
-import { loginSchema, registerSchema, verifyEmailSchema, refreshTokenSchema, logoutSchema } from "../validations/authValidation";
-import { loginUser, registerUser, verifyEmail, refreshAccessToken, logoutUser, logoutAllUser } from "../services/authService";
+import {
+  loginSchema,
+  logoutSchema,
+  refreshTokenSchema,
+  registerSchema,
+  verifyEmailSchema,
+} from "../validations/authValidation";
 
-export const register = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
+import {
+  loginUser,
+  logoutAllUser,
+  logoutUser,
+  refreshAccessToken,
+  registerUser,
+  verifyEmail,
+} from "../services/authService";
+
+import { asyncHandler } from "../utils/asyncHandler";
+import { AppError } from "../utils/AppError";
+
+export const register = asyncHandler(
+  async (req: Request, res: Response) => {
     const validatedData = registerSchema.parse(req.body);
 
     const result = await registerUser(validatedData);
 
     res.status(201).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
 
-export const verifyEmailController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const validatedData =
-      verifyEmailSchema.parse(req.body);
+export const verifyEmailController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validatedData = verifyEmailSchema.parse(req.body);
 
-    const result =
-      await verifyEmail(validatedData);
+    const result = await verifyEmail(validatedData);
 
     res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
 
-export const loginController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const validatedData = loginSchema.parse(
-      req.body
-    );
+export const loginController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validatedData = loginSchema.parse(req.body);
 
-    const result = await loginUser(
-      validatedData
-    );
+    const result = await loginUser(validatedData);
 
     res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
 
-export const refreshAccessTokenController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
+export const refreshAccessTokenController = asyncHandler(
+  async (req: Request, res: Response) => {
     const validatedData = refreshTokenSchema.parse(req.body);
 
     const result = await refreshAccessToken(validatedData);
 
     res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
 
-export const logoutController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const validatedData =
-      logoutSchema.parse(req.body);
+export const logoutController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const validatedData = logoutSchema.parse(req.body);
 
-    const result = await logoutUser(
-      validatedData
-    );
+    const result = await logoutUser(validatedData);
 
     res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
 
-export const logoutAllController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
+export const logoutAllController = asyncHandler(
+  async (req: Request, res: Response) => {
     if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-
-      return;
+      throw new AppError("Unauthorized", 401);
     }
 
-    const result = await logoutAllUser(
-      req.user.userId
-    );
+    const result = await logoutAllUser(req.user.userId);
 
     res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
   }
-};
+);
