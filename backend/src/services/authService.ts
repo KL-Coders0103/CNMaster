@@ -4,9 +4,8 @@ import {
   findUserByEmail,
   findUserByMobile,
   createUser,
-  findOtpByEmailAndPurpose,
-  createEmailOtp,
-  updateEmailOtp,
+  upsertEmailOtp,
+  findActiveOtp,
 } from "../repositories/authRepository";
 
 import { RegisterInput } from "../validations/authValidation";
@@ -27,11 +26,23 @@ export const registerUser = async (
     section,
   } = registerData;
 
+  /*
+  |--------------------------------------------------------------------------
+  | Existing User Checks
+  |--------------------------------------------------------------------------
+  */
+
   const existingUserByEmail = await findUserByEmail(email);
 
   const existingUserByMobile = await findUserByMobile(
     mobileNumber
   );
+
+  /*
+  |--------------------------------------------------------------------------
+  | Verified Users
+  |--------------------------------------------------------------------------
+  */
 
   if (
     existingUserByEmail &&
@@ -46,6 +57,12 @@ export const registerUser = async (
   ) {
     throw new Error("Mobile number already exists");
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Unverified Users
+  |--------------------------------------------------------------------------
+  */
 
   if (
     existingUserByEmail ||
@@ -64,32 +81,52 @@ export const registerUser = async (
       );
     }
 
-    const existingOtp =
-      await findOtpByEmailAndPurpose(
-        email,
-        OtpPurpose.registration
+    const existingOtp = await findActiveOtp(
+      email,
+      OtpPurpose.registration
+    );
+
+    if (existingOtp) {
+      const now = new Date();
+
+      /*
+      |--------------------------------------------------------------------------
+      | Cooldown Check
+      |--------------------------------------------------------------------------
+      */
+
+      const cooldownEndsAt = new Date(
+        existingOtp.lastSentAt.getTime() +
+          30 * 1000
       );
+
+      if (now < cooldownEndsAt) {
+        throw new Error(
+          "Please wait before requesting another OTP"
+        );
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Maximum Resend Attempts
+      |--------------------------------------------------------------------------
+      */
+
+      if (existingOtp.resendCount >= 5) {
+        throw new Error(
+          "Too many OTP requests. Please try again after 15 minutes"
+        );
+      }
+    }
 
     const otp = generateOtp();
 
-    if (existingOtp) {
-      await updateEmailOtp(existingOtp.id, {
-        otp,
-        expiresAt: getOtpExpiry(),
-        resendCount: {
-          increment: 1,
-        },
-        lastSentAt: new Date(),
-        isUsed: false,
-      });
-    } else {
-      await createEmailOtp({
-        email,
-        otp,
-        purpose: OtpPurpose.registration,
-        expiresAt: getOtpExpiry(),
-      });
-    }
+    await upsertEmailOtp(
+      email,
+      OtpPurpose.registration,
+      otp,
+      getOtpExpiry()
+    );
 
     console.log(
       `Registration OTP for ${email}: ${otp}`
@@ -100,6 +137,12 @@ export const registerUser = async (
       message: "OTP resent successfully",
     };
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | New User Registration
+  |--------------------------------------------------------------------------
+  */
 
   const hashedPassword =
     await hashPassword(password);
@@ -116,12 +159,12 @@ export const registerUser = async (
 
   const otp = generateOtp();
 
-  await createEmailOtp({
+  await upsertEmailOtp(
     email,
+    OtpPurpose.registration,
     otp,
-    purpose: OtpPurpose.registration,
-    expiresAt: getOtpExpiry(),
-  });
+    getOtpExpiry()
+  );
 
   console.log(
     `Registration OTP for ${email}: ${otp}`

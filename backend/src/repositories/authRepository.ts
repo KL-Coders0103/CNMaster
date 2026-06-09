@@ -29,39 +29,66 @@ export const createUser = async (
   });
 };
 
-export const findOtpByEmailAndPurpose = async (
+export const upsertEmailOtp = async (
   email: string,
+  purpose: OtpPurpose,
+  otp: string,
+  expiresAt: Date
+) => {
+  return prisma.emailOtp.upsert({
+    where: {
+      email_purpose: {
+        email,
+        purpose,
+      },
+    },
+    create: {
+      email,
+      purpose,
+      otp,
+      expiresAt,
+      resendCount: 0,
+      lastSentAt: new Date(),
+      isUsed: false,
+    },
+    update: {
+      otp,
+      expiresAt,
+      resendCount: {
+        increment: 1,
+      },
+      lastSentAt: new Date(),
+      isUsed: false,
+    },
+  });
+};
+
+export const findActiveOtp = async (
+  email: string,
+  purpose: OtpPurpose
+) => {
+  return prisma.emailOtp.findUnique({
+    where: {
+      email_purpose: {
+        email,
+        purpose,
+      },
+    },
+  });
+};
+
+export const findOtpForVerification = async (
+  email: string,
+  otp: string,
   purpose: OtpPurpose
 ) => {
   return prisma.emailOtp.findFirst({
     where: {
       email,
+      otp,
       purpose,
       isUsed: false,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-};
-
-export const createEmailOtp = async (
-  data: Prisma.EmailOtpCreateInput
-) => {
-  return prisma.emailOtp.create({
-    data,
-  });
-};
-
-export const updateEmailOtp = async (
-  otpId: string,
-  data: Prisma.EmailOtpUpdateInput
-) => {
-  return prisma.emailOtp.update({
-    where: {
-      id: otpId,
-    },
-    data,
   });
 };
 
@@ -74,6 +101,19 @@ export const markOtpAsUsed = async (
     },
     data: {
       isUsed: true,
+    },
+  });
+};
+
+export const verifyUserEmail = async (
+  userId: string
+) => {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      isEmailVerified: true,
     },
   });
 };

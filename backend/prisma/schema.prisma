@@ -37,19 +37,21 @@ model User {
 }
 
 model EmailOtp {
-  id String @id @default(cuid())
+  id            String      @id @default(cuid())
 
-  email String
-  otp   String
+  email         String
+  otp           String
 
-  purpose OtpPurpose
+  purpose       OtpPurpose
 
-  expiresAt   DateTime
-  resendCount Int      @default(0)
+  expiresAt     DateTime
+  resendCount   Int         @default(0)
 
-  lastSentAt DateTime @default(now())
-  isUsed     Boolean  @default(false)
+  lastSentAt    DateTime    @default(now())
+  isUsed        Boolean     @default(false)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([email, purpose])
 }
