@@ -11,6 +11,17 @@ export const findUserByEmail = async (
   });
 };
 
+export const findUserById =
+  async (
+    userId: string
+  ) => {
+    return prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  };
+
 export const findUserByMobile = async (
   mobileNumber: string
 ): Promise<User | null> => {
@@ -181,3 +192,132 @@ export const revokeAllRefreshTokens = async (
     },
   });
 };
+
+export const updateUserProfile =
+  async (
+    userId: string,
+    data: {
+      year: string;
+      branch: string;
+      section: string;
+    }
+  ) => {
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data,
+    });
+  };
+
+export const updateUserPassword =
+  async (
+    userId: string,
+    password: string
+  ) => {
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        password,
+      },
+    });
+  };
+
+export const findUserByGoogleId =
+  async (
+    googleId: string
+  ) => {
+    return prisma.user.findUnique({
+      where: {
+        googleId,
+      },
+    });
+  };
+
+export const createGoogleUser =
+  async (
+    data: {
+      fullName: string;
+      email: string;
+      googleId: string;
+    }
+  ) => {
+    return prisma.user.create({
+      data: {
+        fullName:
+          data.fullName,
+
+        email:
+          data.email,
+
+        googleId:
+          data.googleId,
+
+        provider:
+          "google",
+
+        isEmailVerified:
+          true,
+      },
+    });
+  };
+
+export const updateGoogleProfile =
+  async (
+    userId: string,
+    data: {
+      mobileNumber: string;
+      password: string;
+      year: string;
+      branch: string;
+      section: string;
+    }
+  ) => {
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        mobileNumber:
+          data.mobileNumber,
+
+        password:
+          data.password,
+
+        year:
+          data.year,
+
+        branch:
+          data.branch,
+
+        section:
+          data.section,
+
+        isProfileCompleted:
+          true,
+      },
+    });
+  };
+
+export const linkGoogleAccount =
+  async (
+    userId: string,
+    googleId: string
+  ) => {
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        googleId,
+
+        provider:
+          "email_google",
+      },
+    });
+  };

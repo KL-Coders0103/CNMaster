@@ -9,11 +9,6 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-  /*
-  |--------------------------------------------------------------------------
-  | Custom App Errors
-  |--------------------------------------------------------------------------
-  */
 
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
@@ -23,12 +18,6 @@ export const errorMiddleware = (
 
     return;
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Zod Validation Errors
-  |--------------------------------------------------------------------------
-  */
 
   if (error instanceof ZodError) {
     res.status(400).json({
@@ -42,12 +31,6 @@ export const errorMiddleware = (
 
     return;
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Unknown Errors
-  |--------------------------------------------------------------------------
-  */
 
   console.error(error);
 

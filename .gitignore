@@ -1,0 +1,20 @@
+# Frontend
+frontend1/node_modules/
+frontend1/.expo/
+frontend1/android/
+frontend1/ios/
+frontend1/.env
+frontend1/.env.*
+
+# Backend
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.*
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
