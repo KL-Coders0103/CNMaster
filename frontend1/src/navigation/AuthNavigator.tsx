@@ -32,12 +32,19 @@ export type AuthStackParamList = {
   };
 };
 
-const Stack = createNativeStackNavigator<AuthStackParamList>();
+type Props = {
+  initialRouteName?: keyof AuthStackParamList;
+};
 
-const AuthNavigator = () => {
+const Stack =
+  createNativeStackNavigator<AuthStackParamList>();
+
+const AuthNavigator = ({
+  initialRouteName = "Register",
+}: Props) => {
   return (
     <Stack.Navigator
-      initialRouteName="Register"
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
       }}

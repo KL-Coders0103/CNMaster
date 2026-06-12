@@ -17,16 +17,27 @@ const RootNavigator = () => {
   const {
     isAuthenticated,
     isInitializing,
+    user,
   } = useAuthStore();
+
+  if (isInitializing) {
+    return <SplashScreen />;
+  }
 
   return (
     <NavigationContainer>
-      {isInitializing ? (
-        <SplashScreen />
-      ) : isAuthenticated ? (
-        <AppNavigator />
+      {isAuthenticated ? (
+        user?.isProfileCompleted ? (
+          <AppNavigator />
+        ) : (
+          <AuthNavigator
+            initialRouteName="CompleteProfile"
+          />
+        )
       ) : (
-        <AuthNavigator />
+        <AuthNavigator
+          initialRouteName="Register"
+        />
       )}
     </NavigationContainer>
   );

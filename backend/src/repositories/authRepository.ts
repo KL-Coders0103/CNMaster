@@ -206,7 +206,10 @@ export const updateUserProfile =
       where: {
         id: userId,
       },
-      data,
+      data: {
+        ...data,
+        isProfileCompleted: true,
+      },
     });
   };
 

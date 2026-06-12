@@ -306,37 +306,38 @@ const RegisterScreen = ({ navigation }: Props) => {
             onPress={async () => {
               try {
                 const user =
-                  await signInWithGoogle();
+  await signInWithGoogle();
 
-                if (!user) {
-                  return;
-                }
+if (!user) {
+  return;
+}
 
-                const authUser =
-                  useAuthStore.getState().user;
+const authUser =
+  useAuthStore.getState().user;
 
-                Toast.show({
-                  type: "success",
-                  text1:
-                    "Google Sign In Successful",
-                });
+if (
+  authUser?.isProfileCompleted
+) {
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "App" as never,
+      },
+    ],
+  });
+} else {
+  navigation.navigate(
+    "CompleteProfile"
+  );
+}
 
-                if (
-                  authUser?.isProfileCompleted
-                ) {
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "App" as never,
-                      },
-                    ],
-                  });
-                } else {
-                  navigation.navigate(
-                    "CompleteProfile"
-                  );
-                }
+Toast.show({
+  type: "success",
+  text1:
+    "Google Sign In Successful",
+});
+                
               } catch (error: any) {
                 Toast.show({
                   type: "error",

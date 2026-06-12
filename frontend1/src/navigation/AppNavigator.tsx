@@ -4,43 +4,26 @@ import {
   createNativeStackNavigator,
 } from "@react-navigation/native-stack";
 
-import {
-  View,
-  Text,
-} from "react-native";
+import StudentBottomTabs from "./StudentBottomTabs";
 
 const Stack =
   createNativeStackNavigator();
 
-const Dashboard =
-  () => (
-    <View
-      style={{
-        flex: 1,
-        justifyContent:
-          "center",
-        alignItems:
-          "center",
+const AppNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
       }}
     >
-      <Text>
-        Dashboard
-      </Text>
-    </View>
+      <Stack.Screen
+        name="StudentTabs"
+        component={
+          StudentBottomTabs
+        }
+      />
+    </Stack.Navigator>
   );
-
-const AppNavigator =
-  () => {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Dashboard"
-          component={
-            Dashboard
-          }
-        />
-      </Stack.Navigator>
-    );
-  };
+};
 
 export default AppNavigator;

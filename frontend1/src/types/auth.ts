@@ -25,7 +25,7 @@ export type User = {
   email: string;
   mobileNumber?: string | null;
   role: string;
-  provider: "email" | "google";
+  provider: "email" | "google" | "email_google";
   googleId?: string | null;
   year?: string | null;
   branch?: string | null;
@@ -58,6 +58,10 @@ export interface CompleteProfileRequest {
 export interface CompleteProfileResponse {
   success: boolean;
   message: string;
+
+  data: {
+    user: User;
+  };
 }
 
 export interface LoginRequest {

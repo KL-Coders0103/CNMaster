@@ -1,18 +1,5 @@
 import { create } from "zustand";
-
-type User = {
-  id: string;
-  fullName: string;
-  email: string;
-  mobileNumber?: string | null;
-  role: string;
-  provider: "email" | "google";
-  googleId?: string | null;
-  year?: string | null;
-  branch?: string | null;
-  section?: string | null;
-  isProfileCompleted: boolean;
-};
+import type { User } from "../types/auth";
 
 type AuthState = {
   accessToken: string | null;
@@ -53,6 +40,7 @@ export const useAuthStore =
         refreshToken,
         user,
         isAuthenticated: true,
+        isInitializing: false,
       }),
 
     clearAuth: () =>
@@ -61,6 +49,7 @@ export const useAuthStore =
         refreshToken: null,
         user: null,
         isAuthenticated: false,
+        isInitializing: false,
       }),
 
     setInitializing: (

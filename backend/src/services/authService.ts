@@ -227,16 +227,23 @@ export const verifyEmail = async (
       accessToken,
       refreshToken,
       user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        mobileNumber:
-          user.mobileNumber,
-        role: user.role,
-        year: user.year,
-        branch: user.branch,
-        section: user.section,
-      },
+  id: user.id,
+  fullName: user.fullName,
+  email: user.email,
+  mobileNumber: user.mobileNumber,
+
+  role: user.role,
+
+  provider: user.provider,
+  googleId: user.googleId,
+
+  year: user.year,
+  branch: user.branch,
+  section: user.section,
+
+  isProfileCompleted:
+    user.isProfileCompleted,
+},
     },
   };
 };
@@ -320,13 +327,23 @@ export const loginUser = async (
       accessToken,
       refreshToken,
       user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        mobileNumber:
-          user.mobileNumber,
-        role: user.role,
-      },
+  id: user.id,
+  fullName: user.fullName,
+  email: user.email,
+  mobileNumber: user.mobileNumber,
+
+  role: user.role,
+
+  provider: user.provider,
+  googleId: user.googleId,
+
+  year: user.year,
+  branch: user.branch,
+  section: user.section,
+
+  isProfileCompleted:
+    user.isProfileCompleted,
+},
     },
   };
 };

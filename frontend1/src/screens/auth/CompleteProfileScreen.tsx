@@ -41,16 +41,13 @@ import {
 } from "../../store/authStore";
 
 const CompleteProfileScreen = () => {
-  const user =
-    useAuthStore(
-      (state) => state.user
-    );
 
-  const accessToken =
-    useAuthStore(
-      (state) =>
-        state.accessToken
-    );
+  const {
+  user,
+  accessToken,
+  refreshToken,
+  setAuth,
+} = useAuthStore();
 
   const [
     showPassword,
@@ -61,6 +58,7 @@ const CompleteProfileScreen = () => {
     showConfirmPassword,
     setShowConfirmPassword,
   ] = useState(false);
+
 
   const isGoogleUser =
     user?.provider ===
@@ -82,28 +80,32 @@ const CompleteProfileScreen = () => {
       ),
 
     defaultValues: {
-      mobileNumber:
-        user?.mobileNumber ?? "",
+  mobileNumber:
+    user?.mobileNumber ?? "",
 
-      password: "",
+  password: "",
 
-      confirmPassword:
-        "",
+  confirmPassword:
+    "",
 
-      year:
-        user?.year ?? "",
+  year:
+    user?.year ?? "",
 
-      branch:
-        user?.branch ?? "",
+  branch:
+    user?.branch ?? "",
 
-      section:
-        user?.section ?? "",
-    },
+  section:
+    user?.section ?? "",
+
+  isGoogleUser,
+},
   });
+  console.log("Form error:", errors);
 
   const onSubmit = async (
     data: CompleteProfileFormData
   ) => {
+    console.log("complete profile submit", data);
     try {
       const payload = {
   mobileNumber:
@@ -121,20 +123,30 @@ const CompleteProfileScreen = () => {
   section: data.section,
 };
 
-await completeProfile(
-  payload,
-  accessToken!
+const response =
+  await completeProfile(
+    payload,
+    accessToken!
+  );
+
+setAuth(
+  accessToken!,
+  refreshToken!,
+  response.data.user
 );
 
-      Toast.show({
-        type: "success",
-        text1:
-          "Profile Completed",
-      });
+Toast.show({
+  type: "success",
+  text1:
+    "Profile Completed",
+});
 
       /*
-       Navigate to AppNavigator after Dashboard is built
-      */
+ RootNavigator will automatically
+ move user to AppNavigator
+ because isProfileCompleted
+ becomes true.
+*/
 
     } catch (
       error: any

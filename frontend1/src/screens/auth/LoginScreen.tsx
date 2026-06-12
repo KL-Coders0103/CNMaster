@@ -358,24 +358,6 @@ const LoginScreen = ({
                     .getState()
                     .user;
 
-                if (
-                  authUser
-                    ?.isProfileCompleted
-                ) {
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "App" as never,
-                      },
-                    ],
-                  });
-                } else {
-                  navigation.navigate(
-                    "CompleteProfile"
-                  );
-                }
-
                 Toast.show({
                   type: "success",
                   text1:
