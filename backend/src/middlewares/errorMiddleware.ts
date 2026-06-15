@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-
 import { AppError } from "../utils/AppError";
 
 export const errorMiddleware = (
@@ -9,13 +8,11 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
     });
-
     return;
   }
 
@@ -28,11 +25,10 @@ export const errorMiddleware = (
         message: issue.message,
       })),
     });
-
     return;
   }
 
-  console.error(error);
+  console.error("Unhandled Error:", error);
 
   res.status(500).json({
     success: false,

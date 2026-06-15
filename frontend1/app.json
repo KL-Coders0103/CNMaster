@@ -1,31 +1,31 @@
 {
   "expo": {
-    "name": "frontend1",
-    "slug": "frontend1",
+    "name": "CN Master",
+    "slug": "cn-master",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8FAFC" 
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#F8FAFC"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.laksh0103.frontend1",
       "googleServicesFile": "./google-services.json"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       "expo-secure-store",
-      "@react-native-firebase/app",
+      "@react-native-firebase/app"
     ]
   }
 }

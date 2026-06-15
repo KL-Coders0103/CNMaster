@@ -1,3 +1,17 @@
+export type User = {
+  id: string;
+  fullName: string;
+  email: string;
+  mobileNumber?: string | null;
+  role: string;
+  provider: "email" | "google" | "email_google";
+  googleId?: string | null;
+  year?: string | null;
+  branch?: string | null;
+  section?: string | null;
+  isProfileCompleted: boolean;
+};
+
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -15,33 +29,18 @@ export interface VerifyOtpRequest {
   otp: string;
 }
 
-export interface ResendOtpRequest {
-  email: string;
-}
-
-export type User = {
-  id: string;
-  fullName: string;
-  email: string;
-  mobileNumber?: string | null;
-  role: string;
-  provider: "email" | "google" | "email_google";
-  googleId?: string | null;
-  year?: string | null;
-  branch?: string | null;
-  section?: string | null;
-  isProfileCompleted: boolean;
-};
-
 export interface VerifyOtpResponse {
   success: boolean;
   message: string;
-
   data: {
     accessToken: string;
     refreshToken: string;
     user: User;
   };
+}
+
+export interface ResendOtpRequest {
+  email: string;
 }
 
 export interface ResendOtpResponse {
@@ -50,6 +49,8 @@ export interface ResendOtpResponse {
 }
 
 export interface CompleteProfileRequest {
+  mobileNumber?: string;
+  password?: string;
   year: string;
   branch: string;
   section: string;
@@ -58,7 +59,6 @@ export interface CompleteProfileRequest {
 export interface CompleteProfileResponse {
   success: boolean;
   message: string;
-
   data: {
     user: User;
   };
@@ -72,11 +72,9 @@ export interface LoginRequest {
 export interface LoginResponse {
   success: boolean;
   message: string;
-
   data: {
     accessToken: string;
     refreshToken: string;
-
     user: User;
   };
 }
@@ -118,7 +116,6 @@ export interface RefreshTokenRequest {
 export interface RefreshTokenResponse {
   success: boolean;
   message: string;
-
   data: {
     accessToken: string;
     user: User;

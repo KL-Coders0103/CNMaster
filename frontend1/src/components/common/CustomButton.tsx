@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-} from "react-native";
-
+import { ActivityIndicator, Pressable, Text } from "react-native";
 import { COLORS } from "../../theme/colors";
 import { customButtonStyles as styles } from "../../styles/components/customButtonStyles";
 
@@ -15,12 +10,7 @@ type Props = {
   onPress: (...args: any[]) => void | Promise<void>;
 };
 
-const CustomButton = ({
-  title,
-  loading = false,
-  disabled = false,
-  onPress,
-}: Props) => {
+const CustomButton = ({ title, loading = false, disabled = false, onPress }: Props) => {
   const isDisabled = loading || disabled;
 
   return (
@@ -30,19 +20,13 @@ const CustomButton = ({
       style={({ pressed }) => [
         styles.button,
         isDisabled && styles.disabled,
-        pressed &&
-          !isDisabled &&
-          styles.pressed,
+        pressed && !isDisabled && styles.pressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          color={COLORS.white}
-        />
+        <ActivityIndicator color={COLORS.white} />
       ) : (
-        <Text style={styles.text}>
-          {title}
-        </Text>
+        <Text style={styles.text}>{title}</Text>
       )}
     </Pressable>
   );

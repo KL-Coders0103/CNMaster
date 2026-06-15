@@ -1,24 +1,25 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
-import healthRoutes from "./routes/healthRoutes";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/authRoutes";
-import dashboardRoutes from "./routes/dashboardRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes"; 
 
 const app: Application = express();
 
+// Global Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-app.use("/health", healthRoutes);
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
+// 404 Fallback Handler
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -26,15 +27,6 @@ app.use((_req: Request, res: Response) => {
   });
 });
 
-app.use(
-  (
-    err: Error,
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    errorMiddleware(err, req, res, next);
-  }
-);
+app.use(errorMiddleware);
 
 export default app;

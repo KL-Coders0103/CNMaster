@@ -5,57 +5,37 @@ type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
-
   isAuthenticated: boolean;
-  isInitializing: boolean
-
-  setAuth: (
-    accessToken: string,
-    refreshToken: string | null,
-    user: User | null
-  ) => void;
-
+  isInitializing: boolean;
+  setAuth: (accessToken: string, refreshToken: string | null, user: User | null) => void;
   clearAuth: () => void;
-
-  setInitializing: (
-    value: boolean
-  ) => void;
+  setInitializing: (value: boolean) => void;
 };
 
-export const useAuthStore =
-  create<AuthState>((set) => ({
-    accessToken: null,
-    refreshToken: null,
-    user: null,
-    isAuthenticated: false,
-    isInitializing: true,
+export const useAuthStore = create<AuthState>((set) => ({
+  accessToken: null,
+  refreshToken: null,
+  user: null,
+  isAuthenticated: false,
+  isInitializing: true, 
 
-    setAuth: (
+  setAuth: (accessToken, refreshToken, user) =>
+    set({
       accessToken,
       refreshToken,
-      user
-    ) =>
-      set({
-        accessToken,
-        refreshToken,
-        user,
-        isAuthenticated: true,
-        isInitializing: false,
-      }),
-
-    clearAuth: () =>
-      set({
-        accessToken: null,
-        refreshToken: null,
-        user: null,
-        isAuthenticated: false,
-        isInitializing: false,
-      }),
-
-    setInitializing: (
-      value
-    ) => set({
-      isInitializing: value,
+      user,
+      isAuthenticated: true,
+      isInitializing: false,
     }),
 
-  }));
+  clearAuth: () =>
+    set({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isAuthenticated: false,
+      isInitializing: false,
+    }),
+
+  setInitializing: (value) => set({ isInitializing: value }),
+}));

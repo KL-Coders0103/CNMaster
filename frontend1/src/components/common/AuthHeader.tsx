@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  Text,
-  View,
-} from "react-native";
-
+import { Text, View } from "react-native";
 import { authHeaderStyles as styles } from "../../styles/components/authHeaderStyles";
 
 type Props = {
@@ -17,13 +13,8 @@ const AuthHeader = ({
 }: Props) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {title}
-      </Text>
-
-      <Text style={styles.subtitle}>
-        {subtitle}
-      </Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.subtitle}>{subtitle}</Text>
     </View>
   );
 };
