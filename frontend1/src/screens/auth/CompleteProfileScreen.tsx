@@ -19,9 +19,8 @@ import {
 
 import Toast from "react-native-toast-message";
 
-import AuthHeader from "../../components/AuthHeader";
-import CustomInput from "../../components/CustomInput";
-import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/common/CustomInput";
+import CustomButton from "../../components/common/CustomButton";
 
 import {
   completeProfileSchema,

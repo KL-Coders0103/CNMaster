@@ -25,9 +25,8 @@ import {
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
 
-import AuthHeader from "../../components/AuthHeader";
-import CustomInput from "../../components/CustomInput";
-import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/common/CustomInput";
+import CustomButton from "../../components/common/CustomButton";
 
 import {
   resetPasswordStyles,
@@ -45,7 +44,7 @@ import {
 import {
   AuthStackParamList,
 } from "../../navigation/AuthNavigator";
-import PasswordStrengthIndicator from "../../components/PasswordStrenghtIndicator";
+import PasswordStrengthIndicator from "../../components/common/PasswordStrenghtIndicator";
 
 type Props =
   NativeStackScreenProps<

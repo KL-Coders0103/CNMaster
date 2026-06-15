@@ -10,7 +10,7 @@ import {
 
 import {
   otpInputStyles,
-} from "../styles/components/otpInputStyles";
+} from "../../styles/components/otpInputStyles";
 
 type Props = {
   value: string;

@@ -45,6 +45,9 @@ model User {
   updatedAt DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+  userStats UserStats?
+  learningProgress LearningProgress[]
+  plannerTasks     PlannerTask[]
 }
 
 model EmailOtp {
@@ -82,4 +85,57 @@ model RefreshToken {
   createdAt   DateTime @default(now())
 
   @@index([userId])
+}
+
+model UserStats {
+  id String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  streakDays Int @default(0)
+  xpCurrent Int @default(0)
+  xpRequired Int @default(500)
+  level Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LearningProgress {
+  id          String   @id @default(cuid())
+
+  moduleName  String
+
+  progress    Int
+
+  lastAccessedAt DateTime @default(now())
+
+  userId      String
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model PlannerTask {
+  id          String   @id @default(cuid())
+
+  title       String
+
+  description String?
+
+  dueDate     DateTime
+
+  isCompleted Boolean  @default(false)
+
+  userId      String
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
 }

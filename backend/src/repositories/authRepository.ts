@@ -36,7 +36,13 @@ export const createUser = async (
   data: Prisma.UserCreateInput
 ): Promise<User> => {
   return prisma.user.create({
-    data,
+    data: {
+      ...data,
+
+      userStats: {
+        create: {},
+      },
+    },
   });
 };
 
@@ -250,20 +256,19 @@ export const createGoogleUser =
   ) => {
     return prisma.user.create({
       data: {
-        fullName:
-          data.fullName,
+        fullName: data.fullName,
 
-        email:
-          data.email,
+        email: data.email,
 
-        googleId:
-          data.googleId,
+        googleId: data.googleId,
 
-        provider:
-          "google",
+        provider: "google",
 
-        isEmailVerified:
-          true,
+        isEmailVerified: true,
+
+        userStats: {
+          create: {},
+        },
       },
     });
   };

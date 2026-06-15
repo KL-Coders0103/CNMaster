@@ -4,7 +4,7 @@ import {
   View,
 } from "react-native";
 
-import { authHeaderStyles as styles } from "../styles/components/authHeaderStyles";
+import { authHeaderStyles as styles } from "../../styles/components/authHeaderStyles";
 
 type Props = {
   title?: string;

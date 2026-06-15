@@ -27,9 +27,9 @@ import {
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
 
-import AuthHeader from "../../components/AuthHeader";
-import OtpInput from "../../components/OtpInput";
-import CustomButton from "../../components/CustomButton";
+import AuthHeader from "../../components/common/AuthHeader";
+import OtpInput from "../../components/common/OtpInput";
+import CustomButton from "../../components/common/CustomButton";
 
 import {
   verifyForgotOtpStyles,

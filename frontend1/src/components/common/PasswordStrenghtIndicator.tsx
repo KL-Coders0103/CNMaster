@@ -7,7 +7,7 @@ import {
 
 import {
   COLORS,
-} from "../theme/colors";
+} from "../../theme/colors";
 
 type Props = {
   password: string;

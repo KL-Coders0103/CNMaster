@@ -6,6 +6,7 @@ import morgan from "morgan";
 import healthRoutes from "./routes/healthRoutes";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/authRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
 
 const app: Application = express();
 
@@ -15,7 +16,8 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.use("/health", healthRoutes);
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({

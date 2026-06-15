@@ -1,27 +1,16 @@
 import React from "react";
 
-import {
-  createBottomTabNavigator,
-} from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import HomeScreen from "../screens/student/HomeScreen";
 import NotesScreen from "../screens/student/NotesScreen";
 import AssignmentsScreen from "../screens/student/AssignmentScreen";
 import PlannerScreen from "../screens/student/PlannerScreen";
 import ProfileScreen from "../screens/student/ProfileScreen";
+import StudentHomeScreen from "../screens/student/StudentHomeScreen";
 
-export type StudentTabParamList = {
-  Home: undefined;
-  Notes: undefined;
-  Assignments: undefined;
-  Planner: undefined;
-  Profile: undefined;
-};
+const Tab = createBottomTabNavigator();
 
-const Tab =
-  createBottomTabNavigator<StudentTabParamList>();
-
-const StudentBottomTabs = () => {
+const StudentTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -30,7 +19,7 @@ const StudentBottomTabs = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={StudentHomeScreen}
       />
 
       <Tab.Screen
@@ -56,4 +45,4 @@ const StudentBottomTabs = () => {
   );
 };
 
-export default StudentBottomTabs;
+export default StudentTabNavigator;

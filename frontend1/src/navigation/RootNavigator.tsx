@@ -12,6 +12,7 @@ import AppNavigator from "./AppNavigator";
 import {
   useAuthStore,
 } from "../store/authStore";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const RootNavigator = () => {
   const {
@@ -25,21 +26,23 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
-      {isAuthenticated ? (
-        user?.isProfileCompleted ? (
-          <AppNavigator />
-        ) : (
-          <AuthNavigator
-            initialRouteName="CompleteProfile"
-          />
-        )
-      ) : (
-        <AuthNavigator
-          initialRouteName="Register"
-        />
-      )}
-    </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          {isAuthenticated ? (
+            user?.isProfileCompleted ? (
+              <AppNavigator />
+            ) : (
+              <AuthNavigator
+                initialRouteName="CompleteProfile"
+              />
+            )
+          ) : (
+            <AuthNavigator
+              initialRouteName="Register"
+            />
+          )}
+        </NavigationContainer>
+      </SafeAreaProvider>
   );
 };
 

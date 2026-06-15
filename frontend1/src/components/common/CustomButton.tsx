@@ -5,8 +5,8 @@ import {
   Text,
 } from "react-native";
 
-import { COLORS } from "../theme/colors";
-import { customButtonStyles as styles } from "../styles/components/customButtonStyles";
+import { COLORS } from "../../theme/colors";
+import { customButtonStyles as styles } from "../../styles/components/customButtonStyles";
 
 type Props = {
   title: string;

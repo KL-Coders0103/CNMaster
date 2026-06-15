@@ -11,8 +11,8 @@ import { Controller, useForm } from "react-hook-form";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
 
-import CustomInput from "../../components/CustomInput";
-import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/common/CustomInput";
+import CustomButton from "../../components/common/CustomButton";
 
 import { registerStyles } from "../../styles/screens/registerStyles";
 import {
@@ -22,7 +22,7 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthStackParamList } from "../../navigation/AuthNavigator";
-import PasswordStrengthIndicator from "../../components/PasswordStrenghtIndicator";
+import PasswordStrengthIndicator from "../../components/common/PasswordStrenghtIndicator";
 import { useAuthStore } from "../../store/authStore";
 import {registerUser } from "../../services/authService";
 import { signInWithGoogle } from "../../services/googleAuthService";
