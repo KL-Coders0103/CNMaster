@@ -1,65 +1,65 @@
 import { StyleSheet } from "react-native";
+import { SPACING } from "../../../theme/spacing";
+import { RADIUS } from "../../../theme/radius";
+import { ThemePalette } from "../../../theme/colors";
 
-export const tasksCardStyles =
+export const getTasksCardStyles = (colors: ThemePalette) => 
   StyleSheet.create({
     tasksCard: {
-      marginHorizontal: 24,
-      marginTop: 20,
-      padding: 20,
-      borderRadius: 20,
-      backgroundColor: "#FFFFFF",
-      elevation: 3,
+      marginHorizontal: SPACING.lg,
+      marginTop: SPACING.lg,
+      padding: SPACING.lg,
+      borderRadius: RADIUS.lg,
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow, 
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.08,
+      shadowRadius: 24,
+      elevation: 8,
     },
-
     tasksHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: 20,
     },
-
+    sectionTitle: { 
+      fontSize: 20,
+      fontWeight: "900",
+      color: colors.textPrimary, 
+      letterSpacing: -0.3,
+    },
     seeAllText: {
-      color: "#2563EB",
-      fontWeight: "600",
+      color: colors.primary,
+      fontWeight: "700",
     },
-
     taskItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 16,
+      marginBottom: SPACING.md,
     },
-
     taskText: {
       marginLeft: 12,
       fontSize: 15,
-      color: "#111827",
+      color: colors.textPrimary,
+      fontWeight: "500",
     },
-
     emptyTaskText: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: "#111827",
+      fontSize: 17,
+      fontWeight: "800",
+      color: colors.textPrimary,
     },
-
     emptyTaskSubText: {
-      marginTop: 8,
-      color: "#6B7280",
+      marginTop: SPACING.sm,
+      color: colors.textSecondary,
       lineHeight: 22,
     },
-
     openPlannerButton: {
       marginTop: 20,
       alignSelf: "flex-start",
     },
-
     openPlannerText: {
-      color: "#2563EB",
-      fontWeight: "600",
-    },
-
-    sectionTitle: { 
-        fontSize: 18, 
-        fontWeight: "700", 
-        color: "#111827", 
+      color: colors.primary,
+      fontWeight: "700",
     },
   });

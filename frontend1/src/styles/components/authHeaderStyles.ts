@@ -1,23 +1,20 @@
 import { StyleSheet } from "react-native";
+import { ThemePalette } from "../../theme/colors";
 
-import { COLORS } from "../../theme/colors";
-
-export const authHeaderStyles =
+export const getAuthHeaderStyles = (colors: ThemePalette) =>
   StyleSheet.create({
     container: {
       paddingTop: 60,
       paddingBottom: 32,
     },
-
     title: {
       fontSize: 32,
       fontWeight: "700",
-      color: COLORS.primary,
+      color: colors.primary,
     },
-
     subtitle: {
       marginTop: 8,
       fontSize: 16,
-      color: COLORS.textSecondary,
+      color: colors.textSecondary,
     },
   });

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { TextInput, View } from "react-native";
-import { otpInputStyles } from "../../styles/components/otpInputStyles";
+import { useThemeStore } from "../../store/themeStore";
+import { getOtpInputStyles } from "../../styles/components/otpInputStyles";
 
 type Props = {
   value: string;
@@ -10,6 +11,8 @@ type Props = {
 
 const OtpInput = ({ value, onChange, length = 6 }: Props) => {
   const inputRefs = useRef<TextInput[]>([]);
+  const { colors } = useThemeStore();
+  const styles = getOtpInputStyles(colors); 
 
   useEffect(() => {
     if (value.length === 0) {
@@ -45,7 +48,7 @@ const OtpInput = ({ value, onChange, length = 6 }: Props) => {
   };
 
   return (
-    <View style={otpInputStyles.container}>
+    <View style={styles.container}>
       {Array.from({ length }).map((_, index) => (
         <TextInput
           key={index}
@@ -57,7 +60,7 @@ const OtpInput = ({ value, onChange, length = 6 }: Props) => {
           onKeyPress={(e) => handleKeyPress(e, index)}
           keyboardType="number-pad"
           maxLength={6} 
-          style={otpInputStyles.input}
+          style={styles.input}
           selectTextOnFocus 
         />
       ))}

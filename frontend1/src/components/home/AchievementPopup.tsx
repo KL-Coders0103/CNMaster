@@ -1,19 +1,8 @@
 import React from "react";
-
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-
-import {
-  Ionicons,
-} from "@expo/vector-icons";
-
-import {
-  achievementPopupStyles,
-} from "../../styles/components/home/achievementPopupStyles";
+import { Modal, View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { getAchievementPopupStyles } from "../../styles/components/home/achievementPopupStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 type Props = {
   visible: boolean;
@@ -23,80 +12,24 @@ type Props = {
   onClose: () => void;
 };
 
-const AchievementPopup = ({
-  visible,
-  title,
-  description,
-  xp,
-  onClose,
-}: Props) => {
+const AchievementPopup = ({ visible, title, description, xp, onClose }: Props) => {
+  const { colors } = useThemeStore();
+  const styles = getAchievementPopupStyles(colors);
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-    >
-      <View
-        style={
-          achievementPopupStyles.achievementOverlay
-        }
-      >
-        <View
-          style={
-            achievementPopupStyles.achievementCard
-          }
-        >
-          <Ionicons
-            name="trophy"
-            size={56}
-            color="#F59E0B"
-          />
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.achievementOverlay}>
+        <View style={styles.achievementCard}>
+          {/* 👈 Dynamic color for the trophy */}
+          <Ionicons name="trophy" size={56} color={colors.warning} />
 
-          <Text
-            style={
-              achievementPopupStyles.achievementTitle
-            }
-          >
-            Achievement Unlocked
-          </Text>
+          <Text style={styles.achievementTitle}>Achievement Unlocked</Text>
+          <Text style={styles.achievementName}>{title}</Text>
+          <Text style={styles.achievementDescription}>{description}</Text>
+          <Text style={styles.achievementXP}>+{xp} XP</Text>
 
-          <Text
-            style={
-              achievementPopupStyles.achievementName
-            }
-          >
-            {title}
-          </Text>
-
-          <Text
-            style={
-              achievementPopupStyles.achievementDescription
-            }
-          >
-            {description}
-          </Text>
-
-          <Text
-            style={
-              achievementPopupStyles.achievementXP
-            }
-          >
-            +{xp} XP
-          </Text>
-
-          <TouchableOpacity
-            style={
-              achievementPopupStyles.achievementButton
-            }
-            onPress={onClose}
-          >
-            <Text
-              style={
-                achievementPopupStyles.achievementButtonText
-              }
-            >
-              Awesome
-            </Text>
+          <TouchableOpacity style={styles.achievementButton} onPress={onClose} activeOpacity={0.8}>
+            <Text style={styles.achievementButtonText}>Awesome</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -5,7 +5,7 @@ import Toast from "react-native-toast-message";
 
 import AuthLayout from "../../components/common/AuthLayout";
 import CustomInput from "../../components/common/CustomInput";
-import CustomDropdown from "../../components/common/CustomDropdown"; // 👈 Import our new component
+import CustomDropdown from "../../components/common/CustomDropdown";
 import { completeProfileSchema, CompleteProfileFormData } from "../../utils/completeProfileSchema";
 import { completeProfile } from "../../services/authService";
 import { useAuthStore } from "../../store/authStore";
@@ -21,8 +21,6 @@ const SECTIONS_MAP: Record<string, string[]> = {
 
 const CompleteProfileScreen = () => {
   const { user, accessToken, refreshToken, setAuth } = useAuthStore();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isGoogleUser = user?.provider === "google";
 
@@ -95,7 +93,7 @@ const CompleteProfileScreen = () => {
             options={BRANCHES}
             onSelect={(val) => {
               field.onChange(val);
-              setValue("section", SECTIONS_MAP[val][0]); // Auto-updates the section instantly
+              setValue("section", SECTIONS_MAP[val][0]); 
             }}
             error={errors.branch?.message}
           />

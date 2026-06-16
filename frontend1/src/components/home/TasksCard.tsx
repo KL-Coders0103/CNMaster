@@ -1,129 +1,56 @@
 import React from "react";
-
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-
-import {
-  Ionicons,
-} from "@expo/vector-icons";
-import {
-  tasksCardStyles,
-} from "../../styles/components/home/tasksCardStyles";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { getTasksCardStyles } from "../../styles/components/home/tasksCardStyles";
 import { useDashboardStore } from "../../store/dashboardStore";
-
+import { useThemeStore } from "../../store/themeStore";
 
 const TasksCard = () => {
+  const dashboard = useDashboardStore(state => state.dashboard);
+  const tasks = dashboard?.tasks ?? [];
+  const hasTasks = tasks.length > 0;
 
-  const dashboard =
-    useDashboardStore(
-      state => state.dashboard
-    );
-
-  const tasks =
-    dashboard?.tasks ?? [];
-
-  const hasTasks =
-    tasks.length > 0;
+  const { colors } = useThemeStore();
+  const styles = getTasksCardStyles(colors);
 
   return (
-    <View
-      style={
-        tasksCardStyles.tasksCard
-      }
-    >
-      <View
-        style={
-          tasksCardStyles.tasksHeader
-        }
-      >
-        <Text
-          style={
-            tasksCardStyles.sectionTitle
-          }
-        >
-          Today's Tasks
-        </Text>
+    <View style={styles.tasksCard}>
+      <View style={styles.tasksHeader}>
+        <Text style={styles.sectionTitle}>Today's Tasks</Text>
 
         {hasTasks && (
-          <TouchableOpacity>
-            <Text
-              style={
-                tasksCardStyles.seeAllText
-              }
-            >
-              See All
-            </Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {!hasTasks ? (
         <>
-          <Text
-            style={
-              tasksCardStyles.emptyTaskText
-            }
-          >
-            No tasks for today.
+          <Text style={styles.emptyTaskText}>No tasks for today.</Text>
+          <Text style={styles.emptyTaskSubText}>
+            Stay organized by planning your study schedule.
           </Text>
 
-          <Text
-            style={
-              tasksCardStyles.emptyTaskSubText
-            }
-          >
-            Stay organized by
-            planning your study
-            schedule.
-          </Text>
-
-          <TouchableOpacity
-            style={
-              tasksCardStyles.openPlannerButton
-            }
-          >
-            <Text
-              style={
-                tasksCardStyles.openPlannerText
-              }
-            >
-              Open Planner
-            </Text>
+          <TouchableOpacity style={styles.openPlannerButton} activeOpacity={0.7}>
+            <Text style={styles.openPlannerText}>Open Planner</Text>
           </TouchableOpacity>
         </>
       ) : (
         tasks.map(task => (
-          <View
-            key={task.id}
-            style={
-              tasksCardStyles.taskItem
-            }
-          >
+          <View key={task.id} style={styles.taskItem}>
             <Ionicons
-              name={
-                task.completed
-                  ? "checkbox"
-                  : "square-outline"
-              }
+              name={task.completed ? "checkbox" : "square-outline"}
               size={24}
-              color={
-                task.completed
-                  ? "#2563EB"
-                  : "#9CA3AF"
-              }
+              color={task.completed ? colors.primary : colors.textSecondary}
             />
 
             <Text
               style={[
-                tasksCardStyles.taskText,
+                styles.taskText,
                 task.completed && {
-                  textDecorationLine:
-                    "line-through",
-                  color:
-                    "#9CA3AF",
+                  textDecorationLine: "line-through",
+                  color: colors.textSecondary,
                 },
               ]}
             >

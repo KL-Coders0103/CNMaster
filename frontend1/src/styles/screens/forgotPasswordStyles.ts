@@ -1,122 +1,64 @@
 import { StyleSheet } from "react-native";
-
-import { COLORS } from "../../theme/colors";
 import { SPACING } from "../../theme/spacing";
+import { ThemePalette } from "../../theme/colors";
 
-export const forgotPasswordStyles =
+export const getForgotPasswordStyles = (colors: ThemePalette) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor:
-        COLORS.background,
+      backgroundColor: colors.background,
     },
-
     scrollContainer: {
       flexGrow: 1,
-      paddingBottom:
-        SPACING.xl,
+      paddingBottom: SPACING.xl,
     },
-
     headerContainer: {
-      paddingHorizontal:
-        SPACING.lg,
-
-      paddingTop:
-        SPACING.xxl,
-
-      paddingBottom:
-        SPACING.xl,
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.xxl,
+      paddingBottom: SPACING.xl,
     },
-
     badge: {
       alignSelf: "flex-start",
-
-      backgroundColor:
-        "rgba(79,70,229,0.1)",
-
+      backgroundColor: colors.isDarkMode ? "rgba(99, 102, 241, 0.15)" : "rgba(79,70,229,0.1)",
       borderRadius: 999,
-
       paddingHorizontal: 12,
-
       paddingVertical: 6,
-
-      marginBottom:
-        SPACING.md,
+      marginBottom: SPACING.md,
     },
-
     badgeText: {
-      color:
-        COLORS.primary,
-
+      color: colors.primary,
       fontSize: 12,
-
       fontWeight: "700",
     },
-
     title: {
       fontSize: 32,
-
       fontWeight: "800",
-
-      color:
-        COLORS.textPrimary,
-
+      color: colors.textPrimary,
       lineHeight: 40,
     },
-
     subtitle: {
-      marginTop:
-        SPACING.sm,
-
-      color:
-        COLORS.textSecondary,
-
+      marginTop: SPACING.sm,
+      color: colors.textSecondary,
       fontSize: 15,
-
       lineHeight: 22,
     },
-
     formContainer: {
       flex: 1,
-
-      backgroundColor:
-        COLORS.surface,
-
-      marginHorizontal:
-        SPACING.lg,
-
+      backgroundColor: colors.surface,
+      marginHorizontal: SPACING.lg,
       borderRadius: 32,
-
-      padding:
-        SPACING.lg,
-
-      shadowColor:
-        "#000",
-
-      shadowOffset: {
-        width: 0,
-        height: 6,
-      },
-
+      padding: SPACING.lg,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.08,
-
       shadowRadius: 20,
-
       elevation: 5,
     },
-
     backText: {
-      textAlign:
-        "center",
-
-      color:
-        COLORS.primary,
-
+      textAlign: "center",
+      color: colors.primary,
       fontWeight: "700",
-
-      marginTop:
-        SPACING.lg,
-
+      marginTop: SPACING.lg,
       fontSize: 14,
     },
   });

@@ -1,55 +1,61 @@
 import { StyleSheet } from "react-native";
+import { SPACING } from "../../../theme/spacing";
+import { RADIUS } from "../../../theme/radius";
+import { TYPOGRAPHY } from "../../../theme/typography";
+import { ThemePalette } from "../../../theme/colors";
 
-export const continueLearningCardStyles = StyleSheet.create({
+export const getContinueLearningCardStyles = (colors: ThemePalette) => 
+  StyleSheet.create({
     continueCard: { 
-        marginHorizontal: 24, 
-        marginTop: 28, 
-        padding: 20, 
-        borderRadius: 20, 
-        backgroundColor: "#FFFFFF", 
-        elevation: 3, 
+      marginHorizontal: SPACING.lg, 
+      marginTop: SPACING.lg, 
+      padding: SPACING.lg, 
+      borderRadius: RADIUS.lg, 
+      backgroundColor: colors.surface, 
+      shadowColor: colors.shadow, 
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.08,
+      shadowRadius: 24,
+      elevation: 8, 
     }, 
-    
     sectionTitle: { 
-        fontSize: 18, 
-        fontWeight: "700", 
-        color: "#111827", 
+      fontSize: 20, 
+      fontWeight: "900", 
+      color: colors.textPrimary, 
+      letterSpacing: -0.3,
     }, 
-    
     topicTitle: { 
-        fontSize: 16, 
-        fontWeight: "600", 
-        marginTop: 16, 
-        color: "#111827", 
+      fontSize: TYPOGRAPHY.body, 
+      fontWeight: "700", 
+      marginTop: SPACING.md, 
+      color: colors.textPrimary, 
     }, 
-    
     progressLabel: { 
-        marginTop: 8, 
-        color: "#6B7280", 
+      marginTop: SPACING.sm, 
+      color: colors.textSecondary, 
+      fontSize: 14,
+      fontWeight: "500",
     }, 
-    
     progressBar: { 
-        height: 10, 
-        borderRadius: 999, 
-        backgroundColor: "#E5E7EB", 
-        marginTop: 16, 
-        overflow: "hidden", 
+      height: 8, 
+      borderRadius: 4, 
+      backgroundColor: colors.border, 
+      marginTop: SPACING.md, 
+      overflow: "hidden", 
     }, 
-    
     progressFill: { 
-        width: "65%", 
-        height: "100%", 
-        backgroundColor: "#2563EB", 
+      height: "100%", 
+      backgroundColor: colors.primary, 
+      borderRadius: 4,
     }, 
-    
     resumeButton: { 
-        flexDirection: "row", 
-        alignItems: "center", 
-        marginTop: 20, }, 
-    
+      flexDirection: "row", 
+      alignItems: "center", 
+      marginTop: 20, 
+    }, 
     resumeText: { 
-        color: "#2563EB", 
-        fontWeight: "600", 
-        marginRight: 8, 
+      color: colors.primary, 
+      fontWeight: "700", 
+      marginRight: SPACING.sm, 
     },
-});
+  });

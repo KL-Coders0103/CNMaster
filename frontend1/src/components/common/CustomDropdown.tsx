@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useThemeStore } from "../../store/themeStore";
+import { ThemePalette } from "../../theme/colors";
 
 type Props = {
   label: string;
@@ -13,12 +15,13 @@ type Props = {
 
 const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }: Props) => {
   const [isVisible, setIsVisible] = useState(false);
+  const { colors } = useThemeStore();
+  const styles = createThemedStyles(colors);
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      
-      {/* The visible input box */}
+
       <TouchableOpacity
         style={[styles.inputBox, error && styles.errorBorder]}
         onPress={() => setIsVisible(true)}
@@ -27,12 +30,11 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
         <Text style={[styles.inputText, !value && styles.placeholderText]}>
           {value || placeholder}
         </Text>
-        <Feather name={isVisible ? "chevron-up" : "chevron-down"} size={20} color="#94A3B8" />
+        <Feather name={isVisible ? "chevron-up" : "chevron-down"} size={20} color={colors.placeholder} />
       </TouchableOpacity>
       
       {error && <Text style={styles.errorText}>{error}</Text>}
-
-      {/* The beautiful overlay menu */}
+      
       <Modal visible={isVisible} transparent animationType="fade">
         <TouchableOpacity 
           style={styles.modalOverlay} 
@@ -43,7 +45,7 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
             <View style={styles.menuHeader}>
               <Text style={styles.menuTitle}>Select {label}</Text>
               <TouchableOpacity onPress={() => setIsVisible(false)}>
-                <Feather name="x" size={20} color="#64748B" />
+                <Feather name="x" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -62,7 +64,7 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
                   <Text style={[styles.optionText, value === item && styles.selectedOptionText]}>
                     {item}
                   </Text>
-                  {value === item && <Feather name="check" size={18} color="#2563EB" />}
+                  {value === item && <Feather name="check" size={18} color={colors.primary} />}
                 </TouchableOpacity>
               )}
             />
@@ -73,14 +75,14 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
   );
 };
 
-const styles = StyleSheet.create({
+const createThemedStyles = (colors: ThemePalette) => StyleSheet.create({
   container: {
     marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#1E293B",
+    fontWeight: "700",
+    color: colors.textPrimary,
     marginBottom: 8,
   },
   inputBox: {
@@ -88,40 +90,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    backgroundColor: "#F8FAFC",
+    borderColor: colors.border,
+    borderRadius: 14,
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
-    height: 52, // Matches the standard text input height
+    height: 54, 
   },
   errorBorder: {
-    borderColor: "#EF4444",
+    borderColor: colors.error,
   },
   inputText: {
     fontSize: 16,
-    color: "#1E293B",
+    color: colors.textPrimary,
+    fontWeight: "500",
   },
   placeholderText: {
-    color: "#94A3B8",
+    color: colors.placeholder,
   },
   errorText: {
-    color: "#EF4444",
-    fontSize: 12,
-    marginTop: 4,
+    color: colors.error,
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)", // Sleek dark overlay
-    justifyContent: "flex-end", // Pushes the menu to the bottom
+    backgroundColor: "rgba(0, 0, 0, 0.5)", 
+    justifyContent: "flex-end", 
   },
   dropdownMenu: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     paddingHorizontal: 24,
     paddingBottom: 40,
-    paddingTop: 16,
-    maxHeight: "60%", // Ensures it doesn't take up the whole screen
+    paddingTop: 20,
+    maxHeight: "60%", 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
   },
   menuHeader: {
     flexDirection: "row",
@@ -130,12 +139,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: colors.border,
   },
   menuTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#1E293B",
+    fontWeight: "800",
+    color: colors.textPrimary,
   },
   optionItem: {
     flexDirection: "row",
@@ -143,22 +152,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
+    borderBottomColor: colors.background,
   },
   selectedOption: {
-    backgroundColor: "#EFF6FF", // Light blue highlight
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    backgroundColor: colors.isDarkMode ? "rgba(99, 102, 241, 0.15)" : "#EFF6FF",
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderBottomWidth: 0,
   },
   optionText: {
     fontSize: 16,
-    color: "#334155",
-    fontWeight: "500",
+    color: colors.textSecondary,
+    fontWeight: "600",
   },
   selectedOptionText: {
-    color: "#2563EB",
-    fontWeight: "700",
+    color: colors.primary,
+    fontWeight: "800",
   },
 });
 

@@ -1,13 +1,13 @@
 import { StyleSheet } from "react-native";
+import { ThemePalette } from "../../theme/colors";
 
-export const studentHomeStyles =
+export const getStudentHomeStyles = (colors: ThemePalette) => 
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#F8FAFC",
+      backgroundColor: colors.background,
     },
-
     scrollContainer: {
-      paddingBottom: 100,
+      paddingBottom: 120,
     },
   });

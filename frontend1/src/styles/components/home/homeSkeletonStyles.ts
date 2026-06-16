@@ -1,15 +1,17 @@
 import { StyleSheet } from "react-native";
+import { SPACING } from "../../../theme/spacing";
+import { RADIUS } from "../../../theme/radius";
+import { ThemePalette } from "../../../theme/colors";
 
-export const homeSkeletonStyles =
+export const getHomeSkeletonStyles = (colors: ThemePalette) => 
   StyleSheet.create({
     container: {
-      paddingHorizontal: 24,
-      paddingTop: 20,
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.lg, 
     },
-
     skeletonBlock: {
-      borderRadius: 16,
-      backgroundColor: "#E5E7EB",
-      marginBottom: 16,
+      borderRadius: RADIUS.lg, 
+      backgroundColor: colors.border,
+      marginBottom: SPACING.lg, 
     },
   });

@@ -1,44 +1,33 @@
 import { StyleSheet } from "react-native";
-
-import { COLORS } from "../../theme/colors";
 import { SPACING } from "../../theme/spacing";
+import { ThemePalette } from "../../theme/colors";
 
-export const verifyOtpStyles =
+export const getVerifyOtpStyles = (colors: ThemePalette) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor:
-        COLORS.background,
+      backgroundColor: colors.background,
     },
-
     scrollContainer: {
       flexGrow: 1,
-      paddingHorizontal:
-        SPACING.lg,
-      paddingVertical:
-        SPACING.xl,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.xl,
     },
-
     formContainer: {
-      marginTop:
-        SPACING.xl,
+      marginTop: SPACING.xl,
       gap: SPACING.lg,
     },
-
     infoText: {
-      color: COLORS.textPrimary,
+      color: colors.textPrimary,
       textAlign: "center",
-      marginBottom:
-        SPACING.md,
+      marginBottom: SPACING.md,
     },
-
     resendText: {
       textAlign: "center",
-      color: COLORS.primary,
+      color: colors.primary,
       fontWeight: "600",
       marginTop: SPACING.md,
     },
-
     disabledText: {
       opacity: 0.5,
     },

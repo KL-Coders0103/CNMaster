@@ -15,11 +15,19 @@ import { signInWithGoogle } from "../../services/googleAuthService";
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
 const RegisterScreen = ({ navigation }: Props) => {
-  // Notice: No more useState for passwords here!
-
-  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: "", email: "", mobileNumber: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      fullName: "",
+      email: "",
+      mobileNumber: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -30,10 +38,18 @@ const RegisterScreen = ({ navigation }: Props) => {
         mobileNumber: data.mobileNumber.trim(),
         password: data.password,
       });
-      Toast.show({ type: "success", text1: "Registration Successful", text2: response.message || "OTP sent successfully" });
+      Toast.show({
+        type: "success",
+        text1: "Registration Successful",
+        text2: response.message || "OTP sent successfully",
+      });
       navigation.navigate("VerifyOtp", { email: data.email });
     } catch (error: any) {
-      Toast.show({ type: "error", text1: "Registration Failed", text2: error?.response?.data?.message || "Something went wrong" });
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2: error?.response?.data?.message || "Something went wrong",
+      });
     }
   };
 
@@ -44,7 +60,11 @@ const RegisterScreen = ({ navigation }: Props) => {
       Toast.show({ type: "success", text1: "Google Sign In Successful" });
       if (!user.isProfileCompleted) navigation.navigate("CompleteProfile");
     } catch (error: any) {
-      Toast.show({ type: "error", text1: "Google Sign In Failed", text2: error?.message ?? "Something went wrong" });
+      Toast.show({
+        type: "error",
+        text1: "Google Sign In Failed",
+        text2: error?.message ?? "Something went wrong",
+      });
     }
   };
 
@@ -61,18 +81,88 @@ const RegisterScreen = ({ navigation }: Props) => {
       bottomLinkText="Login"
       onBottomLinkPress={() => navigation.navigate("Login")}
     >
-      <Controller control={control} name="fullName" render={({ field }) => <CustomInput label="Full Name" placeholder="Enter full name" value={field.value} onChangeText={field.onChange} error={errors.fullName?.message} />} />
-      <Controller control={control} name="email" render={({ field }) => <CustomInput label="Email" placeholder="Enter email" value={field.value} onChangeText={field.onChange} keyboardType="email-address" autoCapitalize="none" error={errors.email?.message} />} />
-      <Controller control={control} name="mobileNumber" render={({ field }) => <CustomInput label="Mobile Number" placeholder="Enter mobile number" prefix="+91" value={field.value} onChangeText={field.onChange} keyboardType="phone-pad" maxLength={10} error={errors.mobileNumber?.message} />} />
-      
-      <Controller control={control} name="password" render={({ field }) => (
-        <>
-          <CustomInput label="Password" placeholder="Create password" value={field.value} onChangeText={field.onChange} isPassword error={errors.password?.message} />
-          <PasswordStrengthIndicator password={field.value} />
-        </>
-      )} />
-      
-      <Controller control={control} name="confirmPassword" render={({ field }) => <CustomInput label="Confirm Password" placeholder="Confirm password" value={field.value} onChangeText={field.onChange} isPassword error={errors.confirmPassword?.message} />} />
+      <Controller
+        control={control}
+        name="fullName"
+        render={({ field }) => (
+          <CustomInput
+            label="Full Name"
+            placeholder="Enter full name"
+            value={field.value}
+            onChangeText={field.onChange}
+            error={errors.fullName?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="email"
+        render={({ field }) => (
+          <CustomInput
+            label="Email"
+            placeholder="Enter email"
+            value={field.value}
+            onChangeText={field.onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={errors.email?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="mobileNumber"
+        render={({ field }) => (
+          <CustomInput
+            label="Mobile Number"
+            placeholder="Enter mobile number"
+            prefix="+91"
+            value={field.value}
+            onChangeText={field.onChange}
+            keyboardType="phone-pad"
+            maxLength={10}
+            error={errors.mobileNumber?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="password"
+        render={({ field }) => (
+          <>
+            <CustomInput
+              label="Password"
+              placeholder="Create password"
+              value={field.value}
+              onChangeText={field.onChange}
+              isPassword
+              error={errors.password?.message}
+            />
+            {/* The strength indicator now flows naturally inside the ScrollView */}
+            {field.value.length > 0 && (
+              <PasswordStrengthIndicator password={field.value} />
+            )}
+          </>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field }) => (
+          <CustomInput
+            label="Confirm Password"
+            placeholder="Confirm password"
+            value={field.value}
+            onChangeText={field.onChange}
+            isPassword
+            error={errors.confirmPassword?.message}
+          />
+        )}
+      />
     </AuthLayout>
   );
 };

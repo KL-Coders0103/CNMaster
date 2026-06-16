@@ -1,124 +1,48 @@
 import React from "react";
-
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { continueLearningCardStyles } from "../../styles/components/home/continueLearningCardStyles";
+import { getContinueLearningCardStyles } from "../../styles/components/home/continueLearningCardStyles";
 import { useDashboardStore } from "../../store/dashboardStore";
+import { useThemeStore } from "../../store/themeStore";
 
-const ContinueLearningCard =
-  () => {
-    const dashboard =
-      useDashboardStore(
-        state => state.dashboard
-      );
+const ContinueLearningCard = () => {
+  const dashboard = useDashboardStore(state => state.dashboard);
+  const continueLearning = dashboard?.continueLearning;
+  const hasProgress = !!continueLearning;
+  
+  const { colors } = useThemeStore();
+  const styles = getContinueLearningCardStyles(colors);
 
-    const continueLearning =
-      dashboard?.continueLearning;
-
-    const hasProgress =
-      !!continueLearning;
-
-    if (!hasProgress) {
-      return (
-        <View
-          style={
-            continueLearningCardStyles.continueCard
-          }
-        >
-          <Text
-            style={
-              continueLearningCardStyles.sectionTitle
-            }
-          >
-            Start Learning
-          </Text>
-
-          <Text>
-            You haven't started
-            yet.
-          </Text>
-
-          <TouchableOpacity>
-            <Text
-              style={
-                continueLearningCardStyles.resumeText
-              }
-            >
-              Start First Topic →
-            </Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
+  if (!hasProgress) {
     return (
-      <View
-        style={
-          continueLearningCardStyles.continueCard
-        }
-      >
-        <Text
-          style={
-            continueLearningCardStyles.sectionTitle
-          }
-        >
-          Continue Learning
-        </Text>
-
-        <Text
-          style={
-            continueLearningCardStyles.topicTitle
-          }
-        >
-          {continueLearning?.moduleName}
-        </Text>
-
-        <Text
-          style={
-            continueLearningCardStyles.progressLabel
-          }
-        >
-          {continueLearning?.progress}% Completed
-        </Text>
-
-        <View
-          style={
-            continueLearningCardStyles.progressBar
-          }
-        >
-          <View
-            style={
-              continueLearningCardStyles.progressFill
-            }
-          />
-        </View>
-
-        <TouchableOpacity
-          style={
-            continueLearningCardStyles.resumeButton
-          }
-        >
-          <Text
-            style={
-              continueLearningCardStyles.resumeText
-            }
-          >
-            Resume Learning
-          </Text>
-
-          <Ionicons
-            name="arrow-forward"
-            size={18}
-            color="#2563EB"
-          />
+      <View style={styles.continueCard}>
+        <Text style={styles.sectionTitle}>Start Learning</Text>
+        <Text style={styles.progressLabel}>You haven't started yet.</Text>
+        <TouchableOpacity style={styles.resumeButton} activeOpacity={0.7}>
+          <Text style={styles.resumeText}>Start First Topic</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>
     );
-  };
+  }
+
+  return (
+    <View style={styles.continueCard}>
+      <Text style={styles.sectionTitle}>Continue Learning</Text>
+      <Text style={styles.topicTitle}>{continueLearning?.moduleName}</Text>
+      <Text style={styles.progressLabel}>{continueLearning?.progress}% Completed</Text>
+
+      <View style={styles.progressBar}>
+        <View style={[styles.progressFill, { width: `${continueLearning?.progress}%` }]} />
+      </View>
+
+      <TouchableOpacity style={styles.resumeButton} activeOpacity={0.7}>
+        <Text style={styles.resumeText}>Resume Learning</Text>
+        {/* 👈 Dynamic color for the arrow */}
+        <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 export default ContinueLearningCard;

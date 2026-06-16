@@ -1,44 +1,28 @@
 import React from "react";
+import { View } from "react-native";
+import { getHomeSkeletonStyles } from "../../styles/components/home/homeSkeletonStyles";
+import { useThemeStore } from "../../store/themeStore";
 
-import {
-  View,
-} from "react-native";
-
-import {
-  homeSkeletonStyles,
-} from "../../styles/components/home/homeSkeletonStyles";
-
-const SkeletonBlock = ({
-  height,
-}: {
+type SkeletonBlockProps = {
   height: number;
-}) => (
-  <View
-    style={[
-      homeSkeletonStyles.skeletonBlock,
-      {
-        height,
-      },
-    ]}
-  />
+  style: object;
+};
+
+const SkeletonBlock = ({ height, style }: SkeletonBlockProps) => (
+  <View style={[style, { height }]} />
 );
 
 const HomeSkeleton = () => {
+  const { colors } = useThemeStore();
+  const styles = getHomeSkeletonStyles(colors);
+
   return (
-    <View
-      style={
-        homeSkeletonStyles.container
-      }
-    >
-      <SkeletonBlock height={90} />
-
-      <SkeletonBlock height={150} />
-
-      <SkeletonBlock height={120} />
-
-      <SkeletonBlock height={120} />
-
-      <SkeletonBlock height={90} />
+    <View style={styles.container}>
+      <SkeletonBlock height={90} style={styles.skeletonBlock} />
+      <SkeletonBlock height={150} style={styles.skeletonBlock} />
+      <SkeletonBlock height={120} style={styles.skeletonBlock} />
+      <SkeletonBlock height={120} style={styles.skeletonBlock} />
+      <SkeletonBlock height={90} style={styles.skeletonBlock} />
     </View>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Text, TextInput, View, TextInputProps, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { customInputStyles as styles } from "../../styles/components/customInputStyles";
+import { getCustomInputStyles } from "../../styles/components/customInputStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 type Props = TextInputProps & {
   label: string;
@@ -12,6 +13,8 @@ type Props = TextInputProps & {
 
 const CustomInput = ({ label, error, prefix, isPassword, ...props }: Props) => {
   const [isSecure, setIsSecure] = useState(true); 
+  const { colors } = useThemeStore();
+  const styles = getCustomInputStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -20,13 +23,12 @@ const CustomInput = ({ label, error, prefix, isPassword, ...props }: Props) => {
       <View 
         style={[
           styles.input, 
-          // 👇 Changed paddingRight to 12 so the icon hugs the edge!
           { flexDirection: "row", alignItems: "center", paddingLeft: 16, paddingRight: 12 },
           error && styles.errorInput
         ]}
       >
         {prefix && (
-          <Text style={{ color: "#1E293B", fontWeight: "600", fontSize: 16, marginRight: 8 }}>
+          <Text style={{ color: colors.textPrimary, fontWeight: "600", fontSize: 16, marginRight: 8 }}>
             {prefix}
           </Text>
         )}
@@ -34,12 +36,12 @@ const CustomInput = ({ label, error, prefix, isPassword, ...props }: Props) => {
         <TextInput
           {...props}
           secureTextEntry={isPassword ? isSecure : props.secureTextEntry}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.placeholder}
           style={{
             flex: 1,
             height: "100%",
             fontSize: 16,
-            color: "#1E293B",
+            color: colors.textPrimary,
             paddingVertical: 0, 
           }}
         />
@@ -49,7 +51,7 @@ const CustomInput = ({ label, error, prefix, isPassword, ...props }: Props) => {
             <Feather 
               name={isSecure ? "eye-off" : "eye"} 
               size={20} 
-              color="#94A3B8" 
+              color={colors.placeholder} 
             />
           </TouchableOpacity>
         )}

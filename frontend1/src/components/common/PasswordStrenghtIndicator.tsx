@@ -1,12 +1,14 @@
 import React from "react";
 import { Text, View } from "react-native";
-import { COLORS } from "../../theme/colors";
+import { useThemeStore } from "../../store/themeStore";
 
 type Props = {
   password: string;
 };
 
 const PasswordStrengthIndicator = ({ password }: Props) => {
+  const { colors } = useThemeStore(); // 👈 Grab dynamic colors
+  
   let strength = 0;
 
   if (password.length >= 8) strength++;
@@ -15,7 +17,9 @@ const PasswordStrengthIndicator = ({ password }: Props) => {
   if (/[^A-Za-z0-9]/.test(password)) strength++;
 
   const labels = ["Weak", "Fair", "Good", "Strong"];
-  const colors = [COLORS.error, COLORS.warning, "#3B82F6", COLORS.success];
+  
+  // 👈 Replace static colors with theme colors
+  const strengthColors = [colors.error, colors.warning, colors.primary, colors.success];
 
   if (password.length === 0) return null;
 
@@ -29,7 +33,7 @@ const PasswordStrengthIndicator = ({ password }: Props) => {
               flex: 1,
               height: 6,
               borderRadius: 999,
-              backgroundColor: index < strength ? colors[strength - 1] : "#E2E8F0",
+              backgroundColor: index < strength ? strengthColors[strength - 1] : colors.border,
             }}
           />
         ))}
@@ -39,7 +43,7 @@ const PasswordStrengthIndicator = ({ password }: Props) => {
         style={{
           marginTop: 6,
           fontSize: 12,
-          color: colors[strength - 1] ?? COLORS.textSecondary,
+          color: strengthColors[strength - 1] ?? colors.textSecondary,
           fontWeight: "600",
         }}
       >

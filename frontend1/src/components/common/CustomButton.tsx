@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, Text } from "react-native";
-import { COLORS } from "../../theme/colors";
-import { customButtonStyles as styles } from "../../styles/components/customButtonStyles";
+import { getCustomButtonStyles } from "../../styles/components/customButtonStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 type Props = {
   title: string;
@@ -11,6 +11,8 @@ type Props = {
 };
 
 const CustomButton = ({ title, loading = false, disabled = false, onPress }: Props) => {
+  const { colors } = useThemeStore();
+  const styles = getCustomButtonStyles(colors);
   const isDisabled = loading || disabled;
 
   return (
@@ -24,7 +26,7 @@ const CustomButton = ({ title, loading = false, disabled = false, onPress }: Pro
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={COLORS.white} />
+        <ActivityIndicator color={colors.white} />
       ) : (
         <Text style={styles.text}>{title}</Text>
       )}

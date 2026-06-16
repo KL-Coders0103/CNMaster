@@ -28,7 +28,12 @@ export interface DashboardResponse {
       completed: boolean;
     }[];
 
-    weakAreas: [];
+    weakAreas: string[]; 
+
+    recommendedReview: {
+      topic: string;
+      message: string;
+    } | null;
 
     notificationsCount: number;
 
@@ -37,5 +42,17 @@ export interface DashboardResponse {
       description: string;
       xp: number;
     } | null;
+
+    upcomingAssessment: {
+      id: string;
+      title: string;
+      type: "Quiz" | "Exam" | "Assignment";
+      dueDate: string; 
+    } | null;
+
+    weeklyActivity: {
+      day: string;
+      xp: number;
+    }[];
   };
 }

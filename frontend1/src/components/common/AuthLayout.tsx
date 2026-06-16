@@ -11,30 +11,28 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AuthHeader from "./AuthHeader";
 import CustomButton from "../common/CustomButton"; 
+import { useThemeStore } from "../../store/themeStore";
+import { ThemePalette } from "../../theme/colors";
 
 type Props = {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  
   buttonTitle: string;
   onButtonPress: () => void;
   isLoading?: boolean;
-
   showGoogleAuth?: boolean;
   onGooglePress?: () => void;
-
   bottomText?: string;
   bottomLinkText?: string;
   onBottomLinkPress?: () => void;
-
   showForgotPassword?: boolean;
   onForgotPasswordPress?: () => void;
 };
 
 const AuthLayout = ({ 
   title, 
-  subtitle = "Learn • Practice • Grow", 
+  subtitle, 
   children, 
   buttonTitle, 
   onButtonPress, 
@@ -47,34 +45,39 @@ const AuthLayout = ({
   showForgotPassword = false,
   onForgotPasswordPress,
 }: Props) => {
+  const { colors } = useThemeStore();
+  const styles = createThemedStyles(colors);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView} 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.innerContainer}>
+        <View style={styles.container}>
           
+          {/* 1. HEADER (Static) */}
           <AuthHeader title={title} subtitle={subtitle} />
-          
-          {/* Form Container - Now dynamically sizes based on content! */}
-          <View style={styles.formContainer}>
+
+          {/* 2. FORM SCROLLABLE (Shrinks to fit content, scrolls if too large) */}
+          <View style={styles.formWrapper}>
             <ScrollView 
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={styles.formContent}
               keyboardShouldPersistTaps="handled"
-              bounces={false} // Stops weird bouncing on small forms
+              bounces={false} 
             >
               {children}
 
               {showForgotPassword && (
-                <TouchableOpacity onPress={onForgotPasswordPress} style={styles.forgotPassword}>
+                <TouchableOpacity onPress={onForgotPasswordPress} style={styles.forgotPassword} activeOpacity={0.7}>
                   <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
           </View>
 
+          {/* 3. CTA BUTTONS & REDIRECT (Static) */}
           <View style={styles.ctaContainer}>
             <CustomButton 
               title={buttonTitle} 
@@ -83,21 +86,21 @@ const AuthLayout = ({
             />
 
             {showGoogleAuth && (
-              <View style={styles.googleSection}>
+              <>
                 <View style={styles.dividerContainer}>
                   <View style={styles.divider} />
                   <Text style={styles.dividerText}>OR</Text>
                   <View style={styles.divider} />
                 </View>
 
-                <TouchableOpacity style={styles.googleButton} onPress={onGooglePress}>
+                <TouchableOpacity style={styles.googleButton} onPress={onGooglePress} activeOpacity={0.7}>
                   <Text style={styles.googleButtonText}>Continue with Google</Text>
                 </TouchableOpacity>
-              </View>
+              </>
             )}
 
             {bottomText && bottomLinkText && (
-              <TouchableOpacity onPress={onBottomLinkPress} style={styles.bottomLinkContainer}>
+              <TouchableOpacity onPress={onBottomLinkPress} style={styles.bottomLinkContainer} activeOpacity={0.7}>
                 <Text style={styles.bottomText}>
                   {bottomText} <Text style={styles.bottomLinkHighlight}>{bottomLinkText}</Text>
                 </Text>
@@ -111,35 +114,34 @@ const AuthLayout = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createThemedStyles = (colors: ThemePalette) => StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    backgroundColor: "#F8FAFC" 
+    backgroundColor: colors.background 
   },
-  container: { 
+  keyboardView: { 
     flex: 1 
   },
-  innerContainer: { 
+  container: { 
     flex: 1, 
     padding: 24, 
     paddingBottom: Platform.OS === "ios" ? 10 : 24,
-    justifyContent: "center", // 👈 Centers the Login form beautifully
+    justifyContent: "center", // Keeps everything perfectly centered
   },
-  formContainer: { 
-    flexShrink: 1, // 👈 THE MAGIC FIX: Hugs content, shrinks & scrolls if too big!
-    backgroundColor: "#FFFFFF", 
-    borderRadius: 16, 
-    padding: 24, 
-    marginBottom: 24, 
-    shadowColor: "#000", 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, 
-    shadowRadius: 10, 
+  formWrapper: { 
+    backgroundColor: colors.surface, 
+    borderRadius: 20, 
+    marginVertical: 24, // Spacing between Header and Buttons
+    shadowColor: colors.shadow, 
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1, 
+    shadowRadius: 12, 
     elevation: 3,
+    flexShrink: 1, // THE FIX: Allows it to wrap tight around 2 fields, but prevents it from breaking the screen with 5 fields
   },
-  scrollContent: { 
+  formContent: { 
+    padding: 24,
     gap: 16, 
-    paddingBottom: 4, // Reduced padding so small forms look tight
   },
   ctaContainer: { 
     gap: 16, 
@@ -149,12 +151,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: "#2563EB",
+    color: colors.primary,
     fontSize: 14,
-    fontWeight: "600",
-  },
-  googleSection: {
-    gap: 16,
+    fontWeight: "700",
   },
   dividerContainer: {
     flexDirection: "row",
@@ -163,38 +162,40 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: 12,
-    color: "#94A3B8",
-    fontSize: 14,
-    fontWeight: "600",
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   googleButton: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: colors.border,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
   },
   googleButtonText: {
-    color: "#1E293B",
+    color: colors.textPrimary,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   bottomLinkContainer: {
     alignItems: "center",
     marginTop: 8,
   },
   bottomText: {
-    color: "#64748B",
+    color: colors.textSecondary,
     fontSize: 14,
+    fontWeight: "500",
   },
   bottomLinkHighlight: {
-    color: "#2563EB",
-    fontWeight: "700",
+    color: colors.primary,
+    fontWeight: "800",
   },
 });
 
