@@ -4,9 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { getTasksCardStyles } from "../../styles/components/home/tasksCardStyles";
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
+import { useNavigation } from "@react-navigation/native";
 
 const TasksCard = () => {
   const dashboard = useDashboardStore(state => state.dashboard);
+  const navigation = useNavigation<any>();
   const tasks = dashboard?.tasks ?? [];
   const hasTasks = tasks.length > 0;
 
@@ -19,7 +21,7 @@ const TasksCard = () => {
         <Text style={styles.sectionTitle}>Today's Tasks</Text>
 
         {hasTasks && (
-          <TouchableOpacity activeOpacity={0.7}>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate("Planner")}>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         )}
@@ -32,13 +34,25 @@ const TasksCard = () => {
             Stay organized by planning your study schedule.
           </Text>
 
-          <TouchableOpacity style={styles.openPlannerButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.openPlannerButton} activeOpacity={0.7} onPress={() => navigation.navigate("Planner")}>
             <Text style={styles.openPlannerText}>Open Planner</Text>
           </TouchableOpacity>
         </>
       ) : (
         tasks.map(task => (
-          <View key={task.id} style={styles.taskItem}>
+          <TouchableOpacity
+            key={task.id}
+            style={styles.taskItem}
+            activeOpacity={0.7}
+            onPress={() =>
+              navigation.navigate(
+                "Planner",
+                {
+                  selectedTaskId: task.id,
+                }
+              )
+            }
+          >
             <Ionicons
               name={task.completed ? "checkbox" : "square-outline"}
               size={24}
@@ -56,7 +70,7 @@ const TasksCard = () => {
             >
               {task.title}
             </Text>
-          </View>
+          </TouchableOpacity>
         ))
       )}
     </View>

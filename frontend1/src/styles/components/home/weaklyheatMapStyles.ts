@@ -23,27 +23,65 @@ export const getWeeklyHeatMapStyles = (colors: ThemePalette) =>
       color: colors.textPrimary,
       marginBottom: 20,
     },
-    heatmapContainer: {
+    heatmapWrapper: {
+      marginTop: SPACING.md,
+    },
+
+    heatmapGrid: {
+      flexDirection: "row",
+      gap: 4,
+    },
+
+    weekColumn: {
+      gap: 4,
+    },
+
+    heatmapSquare: {
+      width: 14,
+      height: 14,
+      borderRadius: 3,
+    },
+
+    legendContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+      marginTop: SPACING.lg,
     },
-    dayColumn: {
+
+    legendLeft: {
+      flexDirection: "row",
       alignItems: "center",
-      gap: SPACING.sm,
     },
-    heatmapSquare: {
-      width: 38, 
-      height: 38,
-      borderRadius: 10, 
-      backgroundColor: colors.isDarkMode ? colors.background : "#F1F5F9", 
-      borderWidth: 1,
-      borderColor: colors.isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", 
-    },
-    dayLabel: {
-      fontSize: 13,
+
+    legendText: {
       color: colors.textSecondary,
-      fontWeight: "700",
-      marginTop: 4,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+
+    legendSquares: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginLeft: 8,
+    },
+
+    monthLabels: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+
+    monthText: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      fontWeight: "600",
+    },
+
+    summaryText: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontWeight: "600",
     },
   });

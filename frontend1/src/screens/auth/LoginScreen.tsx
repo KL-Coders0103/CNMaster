@@ -18,6 +18,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 const LoginScreen = ({ navigation }: Props) => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { identifier: "", password: "" },
@@ -35,14 +37,33 @@ const LoginScreen = ({ navigation }: Props) => {
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      const user = await signInWithGoogle();
-      if (!user) return;
-      Toast.show({ type: "success", text1: "Google Login Successful" });
-    } catch (error: any) {
-      Toast.show({ type: "error", text1: "Google Login Failed", text2: error?.message ?? "Something went wrong" });
+  try {
+    setIsGoogleLoading(true);
+
+    const user = await signInWithGoogle();
+
+    if (!user) {
+      setIsGoogleLoading(false);
+      return;
     }
-  };
+
+    Toast.show({
+      type: "success",
+      text1: "Google Login Successful",
+    });
+
+  } catch (error: any) {
+
+    Toast.show({
+      type: "error",
+      text1: "Google Login Failed",
+      text2: error?.message ?? "Something went wrong",
+    });
+
+  } finally {
+    setIsGoogleLoading(false);
+  }
+};
 
   return (
     <AuthLayout
@@ -51,6 +72,7 @@ const LoginScreen = ({ navigation }: Props) => {
       buttonTitle="Sign In"
       onButtonPress={handleSubmit(onSubmit)}
       isLoading={isSubmitting}
+      googleLoading={isGoogleLoading}
       showForgotPassword={true}
       onForgotPasswordPress={() => navigation.navigate("ForgotPassword")}
       showGoogleAuth={true}

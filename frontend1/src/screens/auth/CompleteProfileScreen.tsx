@@ -9,6 +9,7 @@ import CustomDropdown from "../../components/common/CustomDropdown";
 import { completeProfileSchema, CompleteProfileFormData } from "../../utils/completeProfileSchema";
 import { completeProfile } from "../../services/authService";
 import { useAuthStore } from "../../store/authStore";
+import { saveTokens } from "../../utils/secureStorage";
 
 const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 const BRANCHES = ["CSE", "IT", "AIDS", "AIML"];
@@ -44,6 +45,8 @@ const CompleteProfileScreen = () => {
         year: data.year, branch: data.branch, section: data.section,
       };
       const response = await completeProfile(payload);
+      console.log(response.data.user);
+      await saveTokens(accessToken!, refreshToken!, response.data.user);
       setAuth(accessToken!, refreshToken!, response.data.user);
       Toast.show({ type: "success", text1: "Profile Completed" });
     } catch (error: any) {

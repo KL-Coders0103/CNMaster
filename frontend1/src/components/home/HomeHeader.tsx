@@ -29,7 +29,7 @@ const HomeHeader = () => {
   const hour = new Date().getHours();
   let greetingText = "Good Night";
   let iconName: keyof typeof Feather.glyphMap = "moon";
-  let iconColor = colors.primaryDark; // 👈 Now using dynamic store colors
+  let iconColor = colors.primaryDark; 
 
   if (hour >= 5 && hour < 12) {
     greetingText = "Good Morning";
@@ -90,7 +90,34 @@ const HomeHeader = () => {
               </Text>
             </View>
           </View>
+          <View style={statsStyles.xpContainer}>
+            <View style={statsStyles.xpHeader}>
+              <Text style={statsStyles.xpLabel}>
+                XP Progress
+              </Text>
+              <Text style={statsStyles.xpValue}>
+                {dashboard?.xp.current ?? 0}
+                /
+                {dashboard?.xp.required ?? 100}
+              </Text>
+            </View>
+
+            <View
+              style={
+                statsStyles.progressBackground
+              }
+            >
+              <View
+                style={[
+                  statsStyles.progressFill,
+                  {width: `${Math.min(((dashboard?.xp.current ?? 0) / ( dashboard?.xp.required ?? 100)) *100, 100)}%`,
+                  },
+                ]}
+              />
+            </View>
+          </View>
         </View>
+
 
         <View style={headerStyles.headerIcons}>
           <TouchableOpacity activeOpacity={0.7}>

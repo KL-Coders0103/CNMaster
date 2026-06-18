@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { ScrollView, View, RefreshControl } from "react-native"; // 👈 Added RefreshControl
+import { ScrollView, View, RefreshControl } from "react-native"; 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Components
 import HomeHeader from "../../components/home/HomeHeader";
 import ContinueLearningCard from "../../components/home/ContinueLearningCard";
 import TasksCard from "../../components/home/TasksCard";
@@ -15,7 +14,6 @@ import WeeklyHeatmapCard from "../../components/home/WeeklyHeatmapCard";
 import FloatingActionButton from "../../components/common/FloatingActionButton";
 import ThemeToggle from "../../components/common/ThemeToggle";
 
-// Stores & Styles
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
 import { getStudentHomeStyles } from "../../styles/screens/studentHomeStyles";
@@ -24,7 +22,7 @@ const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { dashboard, isLoading, fetchDashboard } = useDashboardStore();       
+  const { dashboard, isLoading, fetchDashboard, markAchievementViewed } = useDashboardStore();       
   const { colors } = useThemeStore(); 
   const styles = getStudentHomeStyles(colors); 
 
@@ -92,7 +90,12 @@ const StudentHomeScreen = () => {
           title={achievement?.title ?? ""}
           description={achievement?.description ?? ""}
           xp={achievement?.xp ?? 0}
-          onClose={() => setAchievementVisible(false)}
+          onClose={async () => {
+            setAchievementVisible(false);
+            if(achievement?.id) {
+              await markAchievementViewed(achievement.id);
+            }
+          }}
         />
       </ScrollView>
 

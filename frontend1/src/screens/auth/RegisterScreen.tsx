@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
@@ -30,6 +30,8 @@ const RegisterScreen = ({ navigation }: Props) => {
     },
   });
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
       const response = await registerUser({
@@ -55,8 +57,12 @@ const RegisterScreen = ({ navigation }: Props) => {
 
   const handleGoogleSignUp = async () => {
     try {
+      setIsGoogleLoading(true);
       const user = await signInWithGoogle();
-      if (!user) return;
+      if (!user) { 
+        setIsGoogleLoading(false);
+        return;
+      }
       Toast.show({ type: "success", text1: "Google Sign In Successful" });
       if (!user.isProfileCompleted) navigation.navigate("CompleteProfile");
     } catch (error: any) {
@@ -75,6 +81,7 @@ const RegisterScreen = ({ navigation }: Props) => {
       buttonTitle="Create Account"
       onButtonPress={handleSubmit(onSubmit)}
       isLoading={isSubmitting}
+      googleLoading={isGoogleLoading}
       showGoogleAuth={true}
       onGooglePress={handleGoogleSignUp}
       bottomText="Already have an account?"

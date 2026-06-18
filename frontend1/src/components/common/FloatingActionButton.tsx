@@ -3,17 +3,29 @@ import { View, Text, TouchableOpacity, Modal, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useThemeStore } from "../../store/themeStore";
 import { getFloatingButtonStyles } from "../../styles/components/floatingActionbuttonStyles";
+import { useNavigation } from "@react-navigation/native";
+import { usePlannerStore } from "../../store/plannerStore";
 
 
 const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { colors } = useThemeStore();
   const styles = getFloatingButtonStyles(colors);
+  const navigation = useNavigation<any>();
+  const setOpenAddTaskModel = usePlannerStore(state => state.setOpenAddTaskModal);
 
   const handleAction = (action: string) => {
     setIsOpen(false);
-    console.log(`Maps to: ${action}`);
-    // navigation.navigate(action); // We will wire this up when the screens exist
+    if(action === "CreateTask") {
+      setOpenAddTaskModel(true);
+      navigation.navigate("Planner");
+      return;
+    }
+
+    if(action === "CreateNote") {
+      navigation.navigate("Notes");
+      return;
+    }
   };
 
   return (

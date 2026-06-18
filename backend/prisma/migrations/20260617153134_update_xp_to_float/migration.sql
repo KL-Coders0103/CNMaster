@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "public"."DailyActivity" ALTER COLUMN "xpGained" SET DEFAULT 0,
+ALTER COLUMN "xpGained" SET DATA TYPE DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "public"."UserStats" ALTER COLUMN "xpCurrent" SET DEFAULT 0,
+ALTER COLUMN "xpCurrent" SET DATA TYPE DOUBLE PRECISION;

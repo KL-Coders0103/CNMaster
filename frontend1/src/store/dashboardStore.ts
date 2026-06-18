@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { DashboardResponse } from "../types/dashboard";
 import { getHomeDashboard } from "../services/dashboardService";
+import { markAchievementViewed as markAchievementViewedApi } from "../services/achievementService";
 
 type DashboardState = {
   dashboard: DashboardResponse["data"] | null;
@@ -11,6 +12,7 @@ type DashboardState = {
   markNotificationsAsRead: () => void;
   isOffline: boolean;
   setOfflineStatus: (status: boolean) => void;
+  markAchievementViewed: (achievementId: string) => Promise<void>;
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -43,6 +45,21 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       ? { ...state.dashboard, notificationsCount: 0 } 
       : null
   })),
+
+  markAchievementViewed: async(achievementId: string) => {
+    try{
+      await markAchievementViewedApi(achievementId);
+
+      set(state => ({
+        dashboard: state.dashboard ? {
+          ...state.dashboard,
+          achievement: null,
+        } : null,
+      }));
+    } catch (error) {
+      console.log("Achievement view error", error);
+    }
+  },
 
   setOfflineStatus: (status: boolean) => set({
     isOffline: status

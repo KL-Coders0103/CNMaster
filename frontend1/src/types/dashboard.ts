@@ -12,6 +12,7 @@ export interface DashboardResponse {
     };
 
     xp: {
+      totalXp: number;
       current: number;
       required: number;
       level: number;
@@ -38,6 +39,7 @@ export interface DashboardResponse {
     notificationsCount: number;
 
     achievement: {
+      id: string;
       title: string;
       description: string;
       xp: number;
@@ -50,9 +52,14 @@ export interface DashboardResponse {
       dueDate: string; 
     } | null;
 
-    weeklyActivity: {
-      day: string;
+    activityHeatmap: {
+      date: string;
       xp: number;
     }[];
+
+    motivation: {
+      text: string;
+      author: string;
+    }
   };
 }

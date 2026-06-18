@@ -13,6 +13,9 @@ import AuthHeader from "./AuthHeader";
 import CustomButton from "../common/CustomButton"; 
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
+import {
+  ActivityIndicator,
+} from "react-native";
 
 type Props = {
   title: string;
@@ -21,6 +24,7 @@ type Props = {
   buttonTitle: string;
   onButtonPress: () => void;
   isLoading?: boolean;
+  googleLoading?: boolean;
   showGoogleAuth?: boolean;
   onGooglePress?: () => void;
   bottomText?: string;
@@ -37,6 +41,7 @@ const AuthLayout = ({
   buttonTitle, 
   onButtonPress, 
   isLoading = false,
+  googleLoading = false,
   showGoogleAuth = false,
   onGooglePress,
   bottomText,
@@ -93,8 +98,22 @@ const AuthLayout = ({
                   <View style={styles.divider} />
                 </View>
 
-                <TouchableOpacity style={styles.googleButton} onPress={onGooglePress} activeOpacity={0.7}>
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                <TouchableOpacity
+                  style={styles.googleButton}
+                  onPress={onGooglePress}
+                  activeOpacity={0.7}
+                  disabled={googleLoading}
+                >
+                  {googleLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.primary}
+                    />
+                  ) : (
+                    <Text style={styles.googleButtonText}>
+                      Continue with Google
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </>
             )}

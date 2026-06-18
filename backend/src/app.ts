@@ -6,6 +6,8 @@ import morgan from "morgan";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 import authRoutes from "./routes/authRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes"; 
+import plannerRoutes from "./routes/plannerRoutes";
+import achievementRoutes from "./routes/achievementRoutes";
 
 const app: Application = express();
 
@@ -18,6 +20,8 @@ app.use(morgan("dev"));
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/planner", plannerRoutes)
+app.use("/api/achievements", achievementRoutes);
 
 // 404 Fallback Handler
 app.use((_req: Request, res: Response) => {

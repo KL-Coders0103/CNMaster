@@ -56,6 +56,8 @@ model User {
   notifications    Notification[]
   weakAreas        WeakArea[]
   dailyActivities  DailyActivity[]
+  xpTransactions XpTransaction[]
+  userAchievements UserAchievement[]
 }
 
 model EmailOtp {
@@ -92,8 +94,8 @@ model UserStats {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   streakDays Int @default(0)
-  xpCurrent  Int @default(0)
-  xpRequired Int @default(500)
+  xpCurrent  Float @default(0)
+  xpRequired Int @default(100)
   level      Int @default(1)
 
   createdAt DateTime @default(now())
@@ -122,6 +124,7 @@ model PlannerTask {
   description String?
   dueDate     DateTime
   isCompleted Boolean  @default(false)
+  completedAt  DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -130,7 +133,7 @@ model PlannerTask {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([dueDate]) // Speeds up queries when sorting/filtering tasks by date
+  @@index([dueDate])
 }
 
 model Notification {
@@ -175,8 +178,50 @@ model DailyActivity {
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date     DateTime
-  xpGained Int      @default(0)
+  xpGained Float      @default(0)
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model XpTransaction {
+  id String @id @default(cuid())
+  userId String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  source String
+  xpEarned Float
+  referenceId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([source])
+}
+
+model Achievement {
+  id String @id @default(cuid())
+  title String
+  description String
+  xpReward Float
+  code String @unique
+
+  createdAt DateTime @default(now())
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id String @id @default(cuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  achievementId String
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  isViewed Boolean @default(false)
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }
