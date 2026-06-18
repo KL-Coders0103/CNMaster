@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleProp, Text, ViewStyle } from "react-native";
 import { getCustomButtonStyles } from "../../styles/components/customButtonStyles";
 import { useThemeStore } from "../../store/themeStore";
 
@@ -8,9 +8,11 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   onPress: (...args: any[]) => void | Promise<void>;
+  style?: StyleProp<ViewStyle>;
 };
 
-const CustomButton = ({ title, loading = false, disabled = false, onPress }: Props) => {
+// 👇 ADDED 'style' HERE
+const CustomButton = ({ title, loading = false, disabled = false, onPress, style }: Props) => {
   const { colors } = useThemeStore();
   const styles = getCustomButtonStyles(colors);
   const isDisabled = loading || disabled;
@@ -20,7 +22,8 @@ const CustomButton = ({ title, loading = false, disabled = false, onPress }: Pro
       disabled={isDisabled}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.button,
+        styles.button, 
+        style, // Now this will successfully apply!
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
       ]}

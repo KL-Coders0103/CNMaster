@@ -37,6 +37,9 @@ model User {
   googleId     String?      @unique
   provider     AuthProvider @default(email)
 
+  avatarUrl String?
+  avatarPublicId String?
+
   year    String?
   branch  String?
   section String?
@@ -56,8 +59,10 @@ model User {
   notifications    Notification[]
   weakAreas        WeakArea[]
   dailyActivities  DailyActivity[]
-  xpTransactions XpTransaction[]
+  xpTransactions   XpTransaction[]
   userAchievements UserAchievement[]
+
+  settings UserSettings?
 }
 
 model EmailOtp {
@@ -93,10 +98,10 @@ model UserStats {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  streakDays Int @default(0)
+  streakDays Int   @default(0)
   xpCurrent  Float @default(0)
-  xpRequired Int @default(100)
-  level      Int @default(1)
+  xpRequired Int   @default(100)
+  level      Int   @default(1)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -119,12 +124,12 @@ model LearningProgress {
 }
 
 model PlannerTask {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   dueDate     DateTime
-  isCompleted Boolean  @default(false)
-  completedAt  DateTime?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -178,19 +183,19 @@ model DailyActivity {
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date     DateTime
-  xpGained Float      @default(0)
+  xpGained Float    @default(0)
 
   @@unique([userId, date])
   @@index([userId, date])
 }
 
 model XpTransaction {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  source String
-  xpEarned Float
+  source      String
+  xpEarned    Float
   referenceId String?
 
   createdAt DateTime @default(now())
@@ -200,13 +205,13 @@ model XpTransaction {
 }
 
 model Achievement {
-  id String @id @default(cuid())
-  title String
+  id          String @id @default(cuid())
+  title       String
   description String
-  xpReward Float
-  code String @unique
+  xpReward    Float
+  code        String @unique
 
-  createdAt DateTime @default(now())
+  createdAt        DateTime          @default(now())
   userAchievements UserAchievement[]
 }
 
@@ -214,14 +219,29 @@ model UserAchievement {
   id String @id @default(cuid())
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   achievementId String
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
-  isViewed Boolean @default(false)
+  isViewed   Boolean  @default(false)
   unlockedAt DateTime @default(now())
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+model UserSettings {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notificationsEnabled Boolean @default(true)
+  reminderEnabled      Boolean @default(true)
+  darkMode             Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

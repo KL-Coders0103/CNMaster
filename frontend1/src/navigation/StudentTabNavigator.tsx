@@ -5,8 +5,9 @@ import StudentHomeScreen from "../screens/student/StudentHomeScreen";
 import NotesScreen from "../screens/student/NotesScreen";
 import AssignmentsScreen from "../screens/student/AssignmentScreen";
 import PlannerScreen from "../screens/student/PlannerScreen";
-import ProfileScreen from "../screens/student/ProfileScreen";
+
 import { useThemeStore } from "../store/themeStore"; 
+import ProfileStackNavigator from "./ProfileStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -48,7 +49,7 @@ const StudentTabNavigator = () => {
       <Tab.Screen name="Notes" component={NotesScreen} />
       <Tab.Screen name="Assignments" component={AssignmentsScreen} />
       <Tab.Screen name="Planner" component={PlannerScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileStackNavigator} />
     </Tab.Navigator>
   );
 };
