@@ -10,19 +10,18 @@ import { useAuthStore } from "../store/authStore";
 const RootNavigator = () => {
   const { isAuthenticated, isInitializing, user } = useAuthStore();
 
+  // If initializing, show ONLY the Splash Screen.
+  // Nothing else (NavigationContainer, Providers) should be here.
   if (isInitializing) {
     return <SplashScreen />;
   }
 
+  // If initialization is done, show the navigation logic.
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         {isAuthenticated ? (
-          user?.isProfileCompleted ? (
-            <AppNavigator />
-          ) : (
-            <AuthNavigator initialRouteName="CompleteProfile" />
-          )
+          user?.isProfileCompleted ? <AppNavigator /> : <AuthNavigator initialRouteName="CompleteProfile" />
         ) : (
           <AuthNavigator initialRouteName="Register" />
         )}

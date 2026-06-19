@@ -1,44 +1,39 @@
-import React, { useEffect } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  View,
-  Image,
-  StyleSheet,
-} from "react-native";
-
-import { useAuthStore } from "../store/authStore"
+import React, { useEffect, useRef } from "react";
+import { View, Text, Image, StyleSheet, Animated } from "react-native";
+import { useAuthStore } from "../store/authStore";
 import { initializeAuth } from "../services/authBootstrap";
 
 const SplashScreen = () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const isInitializing = useAuthStore((state) => state.isInitializing);
 
   useEffect(() => {
     initializeAuth();
-    const timer = setTimeout(() => {
-      console.log("Splash finished, ready for navigation.");
-    }, 4000);
-
-    return () => clearTimeout(timer);
+    
+    // Smooth entry animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true })
+    ]).start();
   }, []);
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
       <Image 
         source={require("../../assets/icon.png")} 
         style={styles.logo}
         resizeMode="contain"
       />
-      
       <Text style={styles.title}>CN MASTER</Text>
+      
+      {/* Subtle loader for when backend logic takes extra time */}
       {isInitializing && (
-        <ActivityIndicator 
-          size="large" 
-          color="#2563EB" 
-          style={styles.loader} 
-        />
+        <View style={styles.loaderContainer}>
+          <Text style={styles.loaderText}>Syncing your progress...</Text>
+        </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -47,27 +42,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF", // Premium solid white
   },
   logo: {
-    width: 140,
-    height: 140,
-    marginBottom: 24,
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#1E293B",
-    letterSpacing: 2,
+    width: 120,
+    height: 120,
     marginBottom: 20,
   },
-  loader: {
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#1E293B",
+    letterSpacing: 1,
+  },
+  loaderContainer: {
     position: "absolute",
-    bottom: 80,
+    bottom: 60,
+  },
+  loaderText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
 

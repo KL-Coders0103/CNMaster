@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { ScrollView, View, RefreshControl } from "react-native"; 
+import { ScrollView, RefreshControl, StyleSheet } from "react-native"; 
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import HomeHeader from "../../components/home/HomeHeader";
@@ -12,11 +12,10 @@ import HomeSkeleton from "../../components/home/HomeSkeleton";
 import UpcomingDeadlineCard from "../../components/home/UpcomingDeadlineCard";
 import WeeklyHeatmapCard from "../../components/home/WeeklyHeatmapCard";
 import FloatingActionButton from "../../components/common/FloatingActionButton";
-import ThemeToggle from "../../components/common/ThemeToggle";
 
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
-import { getStudentHomeStyles } from "../../styles/screens/studentHomeStyles";
+import { ThemePalette } from "../../theme/colors";
 
 const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
@@ -24,7 +23,7 @@ const StudentHomeScreen = () => {
 
   const { dashboard, isLoading, fetchDashboard, markAchievementViewed } = useDashboardStore();       
   const { colors } = useThemeStore(); 
-  const styles = getStudentHomeStyles(colors); 
+  const styles = createStyles(colors); 
 
   const achievement = dashboard?.achievement;
 
@@ -74,10 +73,7 @@ const StudentHomeScreen = () => {
       >
         <HomeHeader />
         
-        <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
-          <ThemeToggle />
-        </View>
-
+        {/* Components are now naturally aligned with consistent spacing from Header */}
         <UpcomingDeadlineCard />
         <ContinueLearningCard />
         <TasksCard />
@@ -103,5 +99,15 @@ const StudentHomeScreen = () => {
     </SafeAreaView>
   );
 };
+
+const createStyles = (colors: ThemePalette) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
+    paddingBottom: 120, // Provides breathing room for the FAB
+  },
+});
 
 export default StudentHomeScreen;
