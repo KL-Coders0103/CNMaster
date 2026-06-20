@@ -9,6 +9,7 @@ import dashboardRoutes from "./routes/dashboardRoutes";
 import plannerRoutes from "./routes/plannerRoutes";
 import achievementRoutes from "./routes/achievementRoutes";
 import profileRoutes from "./routes/profileRoutes";
+import notesRoutes from "./routes/notesRoutes";
 
 const app: Application = express();
 
@@ -24,6 +25,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/planner", plannerRoutes)
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/notes", notesRoutes);
 
 // 404 Fallback Handler
 app.use((_req: Request, res: Response) => {

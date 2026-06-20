@@ -61,6 +61,8 @@ model User {
   dailyActivities  DailyActivity[]
   xpTransactions   XpTransaction[]
   userAchievements UserAchievement[]
+  bookmarks UserBookmark[]
+  readingProgress UserReadingProgress[]
 
   settings UserSettings?
 }
@@ -244,4 +246,91 @@ model UserSettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Subject {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+
+  chapters    Chapter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chapter {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  notes Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subjectId])
+}
+
+model Note {
+  id          String @id @default(cuid())
+
+  title       String
+  description String?
+
+  pdfUrl      String
+  pdfPublicId String?
+
+  downloads   Int @default(0)
+  views       Int @default(0)
+
+  chapterId String
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookmarks UserBookmark[]
+  readingProgress UserReadingProgress[]
+
+  @@index([chapterId])
+}
+
+model UserBookmark {
+  id String @id @default(cuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  noteId String
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, noteId])
+  @@index([userId])
+}
+
+model UserReadingProgress {
+  id String @id @default(cuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  noteId String
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  currentPage Int @default(1)
+  totalPages Int @default(0)
+
+  lastOpenedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, noteId])
+  @@index([userId])
 }

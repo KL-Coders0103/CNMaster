@@ -16,6 +16,7 @@ import FloatingActionButton from "../../components/common/FloatingActionButton";
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
+import { useNotesStore } from "../../store/notesStore";
 
 const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
@@ -27,9 +28,15 @@ const StudentHomeScreen = () => {
 
   const achievement = dashboard?.achievement;
 
+  const fetchRecentNotes =
+  useNotesStore(
+    state => state.fetchRecentNotes
+  );
+
   useEffect(() => {
     fetchDashboard();
-  }, [fetchDashboard]);
+    fetchRecentNotes();
+  }, [fetchDashboard, fetchRecentNotes]);
 
   useEffect(() => {
     if (dashboard?.achievement && !achievementVisible) {
@@ -40,7 +47,10 @@ const StudentHomeScreen = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchDashboard();
+      await Promise.all([
+        fetchDashboard(),
+        fetchRecentNotes(),
+      ]);
     } catch (error) {
       console.error("Failed to refresh dashboard:", error);
     } finally {
@@ -72,8 +82,6 @@ const StudentHomeScreen = () => {
         }
       >
         <HomeHeader />
-        
-        {/* Components are now naturally aligned with consistent spacing from Header */}
         <UpcomingDeadlineCard />
         <ContinueLearningCard />
         <TasksCard />
@@ -106,7 +114,7 @@ const createStyles = (colors: ThemePalette) => StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContainer: {
-    paddingBottom: 120, // Provides breathing room for the FAB
+    paddingBottom: 120,
   },
 });
 
