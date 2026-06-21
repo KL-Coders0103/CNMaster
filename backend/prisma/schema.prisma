@@ -28,6 +28,23 @@ enum AssessmentType {
   Assignment
 }
 
+enum AssignmentStatus {
+  PENDING
+  SUBMITTED
+  REVIEWED
+  REJECTED
+  RESUBMISSION_REQUIRED
+  OVERDUE
+}
+
+enum AssignmentFileType {
+  PDF
+  DOCX
+  IMAGE
+  ZIP
+  OTHER
+}
+
 model User {
   id           String       @id @default(cuid())
   fullName     String
@@ -63,7 +80,9 @@ model User {
   userAchievements UserAchievement[]
   bookmarks UserBookmark[]
   readingProgress UserReadingProgress[]
-
+  createdAssignments Assignment[] @relation("AssignmentCreator")
+  assignmentSubmissions AssignmentSubmission[] @relation("StudentAssignmentSubmissions")
+  reviewedAssignments AssignmentSubmission[] @relation("AssignmentReviewer")
   settings UserSettings?
 }
 
@@ -272,6 +291,8 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  assignments Assignment[]
+
   @@index([subjectId])
 }
 
@@ -333,4 +354,60 @@ model UserReadingProgress {
 
   @@unique([userId, noteId])
   @@index([userId])
+}
+
+model Assignment {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  instructions    String?
+  dueDate         DateTime
+  totalMarks      Int      @default(0)
+  assignmentUrl   String
+  fileType        AssignmentFileType
+  isPublished     Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  chapterId       String
+  chapter         Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  createdById     String
+  createdBy       User     @relation("AssignmentCreator", fields: [createdById], references: [id])
+
+  submissions     AssignmentSubmission[]
+
+  @@index([chapterId])
+  @@index([dueDate])
+  @@index([isPublished])
+}
+
+model AssignmentSubmission {
+  id                  String   @id @default(uuid())
+  submissionUrl       String
+  submittedAt         DateTime @default(now())
+  status              AssignmentStatus @default(SUBMITTED)
+  marksObtained       Int?
+  feedback            String?
+  reviewedAt          DateTime?
+  isLateSubmission    Boolean  @default(false)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  assignmentId        String
+  assignment          Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  studentId           String
+  student             User @relation("StudentAssignmentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  reviewedById        String?
+  reviewedBy          User? @relation("AssignmentReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([assignmentId, studentId])
+
+  @@index([studentId])
+  @@index([assignmentId])
+  @@index([status])
 }

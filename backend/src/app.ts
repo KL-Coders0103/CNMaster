@@ -10,6 +10,8 @@ import plannerRoutes from "./routes/plannerRoutes";
 import achievementRoutes from "./routes/achievementRoutes";
 import profileRoutes from "./routes/profileRoutes";
 import notesRoutes from "./routes/notesRoutes";
+import assignmentRoutes from "./routes/assignmentRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
 
 const app: Application = express();
 
@@ -26,6 +28,8 @@ app.use("/api/planner", plannerRoutes)
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notes", notesRoutes);
+app.use("/api/assignments", assignmentRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // 404 Fallback Handler
 app.use((_req: Request, res: Response) => {

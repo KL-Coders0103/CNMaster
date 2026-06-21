@@ -17,6 +17,8 @@ import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
 import { useNotesStore } from "../../store/notesStore";
+import UpcomingAssignmentCard from "../../components/home/UpcomingAssignmentCard";
+import { useAssignmentStore } from "../../store/assignmentStore";
 
 const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
@@ -33,10 +35,13 @@ const StudentHomeScreen = () => {
     state => state.fetchRecentNotes
   );
 
+  const { fetchUpcomingAssignment} = useAssignmentStore();
+
   useEffect(() => {
     fetchDashboard();
     fetchRecentNotes();
-  }, [fetchDashboard, fetchRecentNotes]);
+    fetchUpcomingAssignment();
+  }, [fetchDashboard, fetchRecentNotes, fetchUpcomingAssignment]);
 
   useEffect(() => {
     if (dashboard?.achievement && !achievementVisible) {
@@ -83,6 +88,7 @@ const StudentHomeScreen = () => {
       >
         <HomeHeader />
         <UpcomingDeadlineCard />
+        <UpcomingAssignmentCard />
         <ContinueLearningCard />
         <TasksCard />
         <MotivationCard />

@@ -12,9 +12,11 @@ import LeaderboardScreen from "../screens/student/LeaderboardScreen";
 import SettingsScreen from "../screens/student/SettingsScreen";
 import ChangePasswordScreen from "../screens/student/ChangePasswordScreen";
 import DeleteAccountScreen from "../screens/student/DeleteAccountScreen";
+import AnalyticsScreen from "../screens/student/AnalyticsScreen";
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
+  Analytics: undefined;
   EditProfile: undefined;
   Achievements: undefined;
   ActivityHistory: undefined;
@@ -39,6 +41,11 @@ const ProfileStackNavigator =
         <Stack.Screen
           name="ProfileHome"
           component={ProfileScreen}
+        />
+
+        <Stack.Screen
+          name="Analytics"
+          component={AnalyticsScreen}
         />
 
         <Stack.Screen

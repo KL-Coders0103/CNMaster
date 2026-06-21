@@ -3,7 +3,7 @@ import { ScrollView, View, Alert, TouchableOpacity, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { BottomSheetModal } from "@gorhom/bottom-sheet"
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 import ProfileHeader from "../../components/profile/ProfileHeader";
 import ProfileStatsCard from "../../components/profile/ProfileStatsCard";
@@ -27,7 +27,7 @@ const ProfileScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -95,7 +95,15 @@ const ProfileScreen = ({ navigation }: any) => {
 
         <ProfileCompletionCard percentage={completion} />
 
+        {/* --- MENU SECTION --- */}
         <View style={styles.menuSection}>
+          {/* Grouped Analytics Menu Item */}
+          <ProfileMenuItem 
+            title="Analytics & Progress" 
+            icon="pie-chart" 
+            onPress={() => navigation.navigate("Analytics")} 
+          />
+          
           <ProfileMenuItem title="Edit Profile" icon="edit-2" onPress={() => navigation.navigate("EditProfile")} />
           <ProfileMenuItem title="Achievements" icon="award" onPress={() => navigation.navigate("Achievements")} />
           <ProfileMenuItem title="Activity History" icon="activity" onPress={() => navigation.navigate("ActivityHistory")} />
@@ -104,6 +112,7 @@ const ProfileScreen = ({ navigation }: any) => {
           <ProfileMenuItem title="Change Password" icon="lock" onPress={() => navigation.navigate("ChangePassword")} />
         </View>
 
+        {/* --- DANGER ZONE --- */}
         <View style={{ marginHorizontal: 20, marginTop: 32, gap: 12 }}>
           <TouchableOpacity 
             activeOpacity={0.8} 

@@ -2,12 +2,12 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import StudentHomeScreen from "../screens/student/StudentHomeScreen";
-import AssignmentsScreen from "../screens/student/AssignmentScreen";
 import PlannerScreen from "../screens/student/PlannerScreen";
 
 import { useThemeStore } from "../store/themeStore"; 
 import ProfileStackNavigator from "./ProfileStackNavigator";
 import NotesStackNavigator from "./NotesStackNavigator";
+import AssignmentStackNavigator from "./AssignmentStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -47,7 +47,7 @@ const StudentTabNavigator = () => {
     >
       <Tab.Screen name="Home" component={StudentHomeScreen} />
       <Tab.Screen name="Notes" component={NotesStackNavigator} />
-      <Tab.Screen name="Assignments" component={AssignmentsScreen} />
+      <Tab.Screen name="Assignments" component={AssignmentStackNavigator} />
       <Tab.Screen name="Planner" component={PlannerScreen} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} />
     </Tab.Navigator>
