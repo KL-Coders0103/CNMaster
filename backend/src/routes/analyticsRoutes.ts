@@ -1,50 +1,15 @@
-import {
-  Router,
-} from "express";
+import { Router } from "express";
+import { authenticate } from "../middlewares/authMiddleware";
+import * as analyticsController from "../controllers/analyticsController";
 
-import {
-  authenticate,
-} from "../middlewares/authMiddleware";
+const router = Router();
 
-import {
-  fetchWeeklyAnalytics,
-  getConsistencyHeatmapController,
-  getRecentActivitiesController,
-  getWeakAreasController,
-} from "../controllers/analyticsController";
-import { getLearningAnalyticsController } from "../controllers/learningAnalyticsController";
+router.use(authenticate);
 
-const router =
-  Router();
-
-router.get(
-  "/weekly",
-  authenticate,
-  fetchWeeklyAnalytics
-);
-
-router.get(
-  "/learning",
-  authenticate,
-  getLearningAnalyticsController
-);
-
-router.get(
-  "/heatmap",
-  authenticate,
-  getConsistencyHeatmapController
-);
-
-router.get(
-  "/activities",
-  authenticate,
-  getRecentActivitiesController
-);
-
-router.get(
-  "/weak-areas",
-  authenticate,
-  getWeakAreasController
-);
+router.get("/weekly", analyticsController.getWeeklyAnalyticsController);
+router.get("/learning", analyticsController.getLearningAnalyticsController);
+router.get("/heatmap", analyticsController.getConsistencyHeatmapController);
+router.get("/activities", analyticsController.getRecentActivitiesController);
+router.get("/weak-areas", analyticsController.getWeakAreasController);
 
 export default router;

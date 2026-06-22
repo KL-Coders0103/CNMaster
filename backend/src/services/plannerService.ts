@@ -1,126 +1,129 @@
-import { XP_REWARDS } from "../constants/xpConstants";
-import { createTask, deleteTask, getTaskById, getTaskDates, getTasks, toggleTask, updateTask } from "../repositories/plannerRepository";
-import { hasXpTransaction } from "../repositories/xpRepository";
+import prisma from "../config/prisma";
 import { AppError } from "../utils/AppError";
+import { formatLocalDate } from "../utils/dateUtils";
 import { CreatePlannerTaskInput, UpdatePlannerTaskInput } from "../validations/plannerValidation";
+
+
+import { XP_REWARDS } from "../constants/xpConstants";
 import { checkConsistentPlannerAchievement, checkTaskAchievements, unlockEarlybirdAchievement, unlockFirstTaskAchievement, unlockNightOwlAchievement } from "./achievementService";
 import { recalculateUserStreak } from "./streakService";
-import { awardXp } from "./xpService";
+import { awardXp, hasXpTransaction } from "./xpService"; 
 
-export const createPlannerTask = async(userId: string, payload: CreatePlannerTaskInput) => {
-    const task = await createTask(userId, payload.title, payload.description, new Date(payload.dueDate));
+export const createPlannerTask = async (userId: string, payload: CreatePlannerTaskInput) => {
+  const task = await prisma.plannerTask.create({
+    data: {
+      userId,
+      title: payload.title,
+      description: payload.description,
+      dueDate: new Date(payload.dueDate),
+    },
+  });
 
-    await awardXp(userId, XP_REWARDS.TASK_CREATED, "TASK_CREATED", task.id);
+  await awardXp(userId, XP_REWARDS.TASK_CREATED, "TASK_CREATED", task.id);
+  await unlockFirstTaskAchievement(userId);
 
-    await unlockFirstTaskAchievement(userId);
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 7) {
+    await unlockEarlybirdAchievement(userId);
+  } else if (hour >= 23 || hour < 2) {
+    await unlockNightOwlAchievement(userId);
+  }
 
-    const now = new Date();
-    const hour = now.getHours();
+  return { success: true, message: "Task created successfully", data: task };
+};
 
-    if(hour >= 5 && hour < 7) {
-        await unlockEarlybirdAchievement(userId);
-    }
+export const getPlannerTasks = async (userId: string, dateString?: string) => {
+  let whereClause: any = { userId };
 
-    if(hour >= 23 || hour < 2) {
-        await unlockNightOwlAchievement(userId);
-    }
+  if (dateString) {
+    const startDate = new Date(dateString);
+    startDate.setHours(0, 0, 0, 0);
     
-    return {
-        success: true,
-        message: "Task created succesfully",
-        data: task,
-    }
-};
-
-export const getPlannerTask = async(userId: string, date?:string) => {
-    const task = await getTasks({userId, date: date ? new Date(date) : undefined});
-
-    return {
-        success: true,
-        message: "Task fetched succesfully",
-        data: task,
-    }
-};
-
-export const updatePlannerTask = async(taskId: string, userId: string, payload: UpdatePlannerTaskInput) => {
-    const existingTask = await getTaskById(taskId, userId);
-
-    if(!existingTask) {
-        throw new AppError("Task not found", 404);
-    }
-
-    const updatedTask = await updateTask(taskId, {...payload, dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined});
-
-    return {
-        success: true,
-        message: "Task updated succesfully",
-        data: updatedTask,
-    }
-};
-
-export const togglePlannnerTask = async(taskId:string, userId: string) => {
-    const existingTask = await getTaskById(taskId, userId);
-
-    if(!existingTask) {
-        throw new AppError("Task not found", 404);
-    }
-
-    const updatedTask = await toggleTask(taskId, !existingTask.isCompleted);
-
-    if (updatedTask.isCompleted) {
-
-        const existingReward =
-        await hasXpTransaction(
-            updatedTask.userId,
-            "TASK_COMPLETED",
-            updatedTask.id
-        );
-
-        if (!existingReward) {
-
-        await awardXp(
-            updatedTask.userId,
-            XP_REWARDS.TASK_COMPLETED,
-            "TASK_COMPLETED",
-            updatedTask.id
-        );
-        }
-
-        await recalculateUserStreak(updatedTask.userId);
-
-        await checkTaskAchievements(updatedTask.userId);
-
-        await checkConsistentPlannerAchievement(updatedTask.userId);
-    }
+    const endDate = new Date(dateString);
+    endDate.setHours(23, 59, 59, 999);
     
-    return {
-        success: true,
-        message: existingTask.isCompleted ? "Task marked as pending" : "Task marked as completed",
-        data: updatedTask,
-    }
+    whereClause.dueDate = { gte: startDate, lte: endDate };
+  }
+
+  const tasks = await prisma.plannerTask.findMany({
+    where: whereClause,
+    orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
+  });
+
+  return { success: true, message: "Tasks fetched successfully", data: tasks };
 };
 
-export const deletePlannerTask = async(taskId: string, userId: string) => {
-    const existingTask = await getTaskById(taskId, userId);
+export const updatePlannerTask = async (taskId: string, userId: string, payload: UpdatePlannerTaskInput) => {
+  const existingTask = await prisma.plannerTask.findFirst({ where: { id: taskId, userId } });
 
-    if(!existingTask) {
-        throw new AppError("Task not found", 404);
-    }
-    
-    await deleteTask(taskId);
-    
-    return {
-        success: true,
-        message: "Task deleted succesfully",
-    }
+  if (!existingTask) throw new AppError("Task not found", 404);
+
+  const updatedTask = await prisma.plannerTask.update({
+    where: { id: taskId },
+    data: {
+      ...payload,
+      dueDate: payload.dueDate ? new Date(payload.dueDate) : undefined,
+    },
+  });
+
+  return { success: true, message: "Task updated successfully", data: updatedTask };
 };
 
-export const getPlannerCalendarDates = async(userId: string) => {
-    const dates = await getTaskDates(userId);
+export const togglePlannerTask = async (taskId: string, userId: string) => {
+  const existingTask = await prisma.plannerTask.findFirst({ where: { id: taskId, userId } });
 
-    return {
-        success: true,
-        message: "Calendar dates fetched successfully",
-        data: dates,
+  if (!existingTask) throw new AppError("Task not found", 404);
+
+  const isNowCompleted = !existingTask.isCompleted;
+
+  const updatedTask = await prisma.plannerTask.update({
+    where: { id: taskId },
+    data: {
+      isCompleted: isNowCompleted,
+      completedAt: isNowCompleted ? new Date() : null,
+    },
+  });
+
+  if (isNowCompleted) {
+    const alreadyRewarded = await hasXpTransaction(userId, "TASK_COMPLETED", taskId);
+
+    if (!alreadyRewarded) {
+      await awardXp(userId, XP_REWARDS.TASK_COMPLETED, "TASK_COMPLETED", taskId);
     }
+
+    await recalculateUserStreak(userId);
+    await checkTaskAchievements(userId);
+    await checkConsistentPlannerAchievement(userId);
+  }
+
+  return {
+    success: true,
+    message: isNowCompleted ? "Task marked as completed" : "Task marked as pending",
+    data: updatedTask,
+  };
+};
+
+export const deletePlannerTask = async (taskId: string, userId: string) => {
+  const existingTask = await prisma.plannerTask.findFirst({ where: { id: taskId, userId } });
+
+  if (!existingTask) throw new AppError("Task not found", 404);
+
+  await prisma.plannerTask.delete({ where: { id: taskId } });
+
+  return { success: true, message: "Task deleted successfully" };
+};
+
+export const getPlannerCalendarDates = async (userId: string) => {
+  const tasks = await prisma.plannerTask.findMany({
+    where: { userId },
+    select: { dueDate: true },
+  });
+
+  const uniqueDates = [...new Set(tasks.map((task) => formatLocalDate(task.dueDate)))];
+
+  return {
+    success: true,
+    message: "Calendar dates fetched successfully",
+    data: uniqueDates,
+  };
 };

@@ -1,141 +1,53 @@
-import {
-  Request,
-  Response,
-} from "express";
-
-
-import {
-  fetchQuizHistory,
-  fetchQuizResult,
-  fetchTodayChallenge,
-  startQuiz,
-  submitQuiz,
-} from "../services/quizService";
+import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { fetchAdaptiveQuiz } from "../services/adaptiveQuizService";
+import * as quizService from "../services/quizService";
+import { z } from "zod";
+import { QuizDifficulty } from "@prisma/client";
 
-export const startQuizController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
+const startQuizSchema = z.object({
+  chapterId: z.string(),
+  difficulty: z.nativeEnum(QuizDifficulty),
+});
 
-      const {
-        chapterId,
-        difficulty,
-      } = req.body;
+const submitQuizSchema = z.object({
+  attemptId: z.string(),
+  answers: z.array(
+    z.object({
+      questionId: z.string(),
+      selectedAnswer: z.string(),
+    })
+  ).min(1, "At least one answer is required"),
+});
 
-      const result =
-        await startQuiz(
-          req.user!.userId,
-          chapterId,
-          difficulty
-        );
+export const startQuizController = asyncHandler(async (req: Request, res: Response) => {
+  const payload = startQuizSchema.parse(req.body);
+  const data = await quizService.startQuiz(req.user!.userId, payload.chapterId, payload.difficulty);
+  res.status(200).json({ success: true, data });
+});
 
-      res.status(200).json(
-        result
-      );
-    }
-  );
+export const submitQuizController = asyncHandler(async (req: Request, res: Response) => {
+  const payload = submitQuizSchema.parse(req.body);
+  const data = await quizService.submitQuiz(req.user!.userId, payload.attemptId, payload.answers);
+  res.status(200).json({ success: true, data });
+});
 
-export const submitQuizController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
+export const getQuizResultController = asyncHandler(async (req: Request, res: Response) => {
+  const attemptId = req.params.attemptId as string;
+  const data = await quizService.fetchQuizResult(attemptId);
+  res.status(200).json({ success: true, data });
+});
 
-      const {
-        attemptId,
-        answers,
-      } = req.body;
+export const getQuizHistoryController = asyncHandler(async (req: Request, res: Response) => {
+  const data = await quizService.fetchQuizHistory(req.user!.userId);
+  res.status(200).json({ success: true, data });
+});
 
-      const result =
-        await submitQuiz(
-          attemptId,
-          answers
-        );
+export const getTodayChallengeController = asyncHandler(async (_req: Request, res: Response) => {
+  const data = await quizService.fetchTodayChallenge();
+  res.status(200).json({ success: true, data });
+});
 
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const getQuizResultController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      const attemptId =
-        Array.isArray(
-          req.params.attemptId
-        )
-          ? req.params.attemptId[0]
-          : req.params.attemptId;
-
-      const result =
-        await fetchQuizResult(
-          attemptId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const getQuizHistoryController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      const result =
-        await fetchQuizHistory(
-          req.user!.userId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-  export const getTodayChallengeController =
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
-
-      const result =
-        await fetchTodayChallenge();
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-  export const getAdaptiveQuizController =
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
-
-      const result =
-        await fetchAdaptiveQuiz(
-          req.user!.userId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
+export const getAdaptiveQuizController = asyncHandler(async (req: Request, res: Response) => {
+  const data = await quizService.fetchAdaptiveQuiz(req.user!.userId);
+  res.status(200).json({ success: true, data });
+});

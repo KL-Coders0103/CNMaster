@@ -1,203 +1,65 @@
 import { Request, Response } from "express";
-
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
+import * as notesService from "../services/notesService";
 
-import {
-  bookmarkNote,
-  getAllNotes,
-  getChapters,
-  getNoteDetails,
-  getSubjects,
-  registerDownload,
-  removeBookmark,
-} from "../services/notesService";
+export const getChaptersController = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await notesService.getChapters();
+  res.status(200).json(result);
+});
 
-export const getSubjectsController =
-  asyncHandler(
-    async (
-      _req: Request,
-      res: Response
-    ) => {
+export const getNotesController = asyncHandler(async (req: Request, res: Response) => {
+  const search = typeof req.query.search === "string" ? req.query.search : undefined;
+  const chapterId = typeof req.query.chapterId === "string" ? req.query.chapterId : undefined;
 
-      const result =
-        await getSubjects();
+  const result = await notesService.getAllNotes(search, chapterId);
+  res.status(200).json(result);
+});
 
-      res.status(200).json(
-        result
-      );
-    }
-  );
+export const getNoteDetailsController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  const result = await notesService.getNoteDetails(noteId, req.user!.userId);
+  res.status(200).json(result);
+});
 
-export const getChaptersController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
+export const bookmarkNoteController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  const result = await notesService.bookmarkNote(req.user!.userId, noteId);
+  res.status(200).json(result);
+});
 
-      const subjectId = Array.isArray(req.params.subjectId) ? req.params.subjectId[0] :
-        req.params.subjectId;
+export const removeBookmarkController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  const result = await notesService.removeBookmark(req.user!.userId, noteId);
+  res.status(200).json(result);
+});
 
-      const result =
-        await getChapters(
-          subjectId
-        );
+export const registerDownloadController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  if (!noteId) throw new AppError("Note ID required", 400);
 
-      res.status(200).json(
-        result
-      );
-    }
-  );
+  const result = await notesService.registerDownload(noteId);
+  res.status(200).json(result);
+});
 
-export const getNotesController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
+export const saveReadingProgressController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  if (!noteId) throw new AppError("Note ID is required", 400);
 
-      const search =
-        typeof req.query.search ===
-        "string"
-          ? req.query.search
-          : undefined;
+  const { currentPage, totalPages } = req.body;
+  const result = await notesService.saveReadingProgress(req.user!.userId, noteId, currentPage, totalPages);
+  res.status(200).json(result);
+});
 
-      const chapterId =
-        typeof req.query.chapterId ===
-        "string"
-          ? req.query.chapterId
-          : undefined;
+export const getReadingProgressController = asyncHandler(async (req: Request, res: Response) => {
+  const noteId = req.params.noteId as string;
+  if (!noteId) throw new AppError("Note ID is required", 400);
 
-      const result =
-        await getAllNotes(
-          search,
-          chapterId
-        );
+  const result = await notesService.fetchReadingProgress(req.user!.userId, noteId);
+  res.status(200).json(result);
+});
 
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const getNoteDetailsController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      const noteId = Array.isArray(req.params.noteId)
-        ? req.params.noteId[0]
-        : req.params.noteId;
-
-        if (!req.user) {
-  throw new AppError(
-    "Unauthorized",
-    401
-  );
-}
-      const result =
-        await getNoteDetails(
-          noteId,
-          req.user?.userId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const bookmarkNoteController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      if (!req.user) {
-        throw new AppError(
-          "Unauthorized",
-          401
-        );
-      }
-
-      const noteId = Array.isArray(req.params.noteId)
-  ? req.params.noteId[0]
-  : req.params.noteId;
-
-      const result =
-        await bookmarkNote(
-          req.user.userId,
-          noteId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const removeBookmarkController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      if (!req.user) {
-        throw new AppError(
-          "Unauthorized",
-          401
-        );
-      }
-
-      const noteId = Array.isArray(req.params.noteId)
-  ? req.params.noteId[0]
-  : req.params.noteId;
-
-      const result =
-        await removeBookmark(
-          req.user.userId,
-          noteId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
-
-export const registerDownloadController =
-  asyncHandler(
-    async (
-      req: Request,
-      res: Response
-    ) => {
-
-      const noteId =
-        Array.isArray(
-          req.params.noteId
-        )
-          ? req.params.noteId[0]
-          : req.params.noteId;
-
-      if (!noteId) {
-        throw new AppError(
-          "Note ID required",
-          400
-        );
-      }
-
-      const result =
-        await registerDownload(
-          noteId
-        );
-
-      res.status(200).json(
-        result
-      );
-    }
-  );
+export const getRecentNotesController = asyncHandler(async (req: Request, res: Response) => {
+  const result = await notesService.fetchRecentNotes(req.user!.userId);
+  res.status(200).json(result);
+});

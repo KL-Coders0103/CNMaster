@@ -1,55 +1,24 @@
-import { Router }
-from "express";
+import { Router } from "express";
+import { authenticate } from "../middlewares/authMiddleware";
+import * as assignmentController from "../controllers/assignmentController";
+import { uploadAssignment } from "../middlewares/uploadMiddleware";
 
-import { authenticate }
-from "../middlewares/authMiddleware";
-
-import {
-  getAssignmentsController,
-  getAssignmentDetailsController,
-  submitAssignmentController,
-  getSubmissionHistoryController,
-  getUpcomingAssignmentController,
-  getAssignmentAnalyticsController,
-} from "../controllers/assignmentController";
-
-import {
-  uploadAssignment
-} from "../middlewares/uploadAssignmentMiddleware";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get(
-  "/history/me",
-  getSubmissionHistoryController
-);
+router.get("/history/me", assignmentController.getSubmissionHistoryController);
+router.get("/upcoming/me", assignmentController.getUpcomingAssignmentController);
+router.get("/analytics", assignmentController.getAssignmentAnalyticsController);
 
-router.get(
-  "/upcoming/me",
-  getUpcomingAssignmentController
-);
-
-router.get(
-  "/analytics",
-  getAssignmentAnalyticsController
-);
-
-router.get(
-  "/",
-  getAssignmentsController
-);
-
-router.get(
-  "/:assignmentId",
-  getAssignmentDetailsController
-);
+router.get("/", assignmentController.getAssignmentsController);
+router.get("/:assignmentId", assignmentController.getAssignmentDetailsController);
 
 router.post(
   "/:assignmentId/submit",
   uploadAssignment.single("submission"),
-  submitAssignmentController
+  assignmentController.submitAssignmentController
 );
 
 export default router;

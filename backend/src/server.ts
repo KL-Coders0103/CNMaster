@@ -1,11 +1,37 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
 import app from "./app";
+import { PrismaClient } from "@prisma/client";
 
 const PORT = process.env.PORT || 5000;
+const prisma = new PrismaClient();
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.error(err.name, err.message);
+  process.exit(1);
 });
+
+const server = app.listen(PORT, () => {
+  console.log(`🚀 CN Backend running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+const shutdown = async () => {
+  console.log("Gracefully shutting down...");
+  server.close(async () => {
+    console.log("HTTP server closed.");
+    await prisma.$disconnect();
+    console.log("Database connection closed.");
+    process.exit(0);
+  });
+};
+
+process.on("unhandledRejection", (err: Error) => {
+  console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.error(err.name, err.message);
+  shutdown();
+});
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

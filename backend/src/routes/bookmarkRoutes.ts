@@ -1,19 +1,12 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/authMiddleware";
-import { getBookmarksController, toggleBookmarkController } from "../controllers/bookmarkController";
+import * as bookmarkController from "../controllers/bookmarkController";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get(
-  "/",
-  getBookmarksController
-);
-
-router.post(
-  "/:questionId",
-  toggleBookmarkController
-);
+router.get("/", bookmarkController.getBookmarksController);
+router.post("/:questionId", bookmarkController.toggleBookmarkController);
 
 export default router;

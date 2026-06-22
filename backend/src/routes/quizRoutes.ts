@@ -1,51 +1,18 @@
-import { Router }
-from "express";
-
-import {
-  authenticate,
-} from "../middlewares/authMiddleware";
-
-import {
-  getAdaptiveQuizController,
-  getQuizHistoryController,
-  getQuizResultController,
-  getTodayChallengeController,
-  startQuizController,
-  submitQuizController,
-} from "../controllers/quizController";
+import { Router } from "express";
+import { authenticate } from "../middlewares/authMiddleware";
+import * as quizController from "../controllers/quizController";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.post(
-  "/start",
-  startQuizController
-);
+router.get("/daily-challenge", quizController.getTodayChallengeController);
+router.get("/adaptive", quizController.getAdaptiveQuizController);
 
-router.post(
-  "/submit",
-  submitQuizController
-);
+router.post("/start", quizController.startQuizController);
+router.post("/submit", quizController.submitQuizController);
 
-router.get(
-  "/history",
-  getQuizHistoryController
-);
-
-router.get(
-  "/result/:attemptId",
-  getQuizResultController
-);
-
-router.get(
-  "/daily-challenge",
-  getTodayChallengeController
-);
-
-router.get(
-  "/adaptive",
-  getAdaptiveQuizController
-);
+router.get("/history", quizController.getQuizHistoryController);
+router.get("/result/:attemptId", quizController.getQuizResultController);
 
 export default router;

@@ -1,137 +1,62 @@
-import {
-  getCompletedTaskDatesForStreak,
-  updateUserStreak,
-} from "../repositories/streakRepository";
+import prisma from "../config/prisma";
+import { checkStreakAchievements } from "./achievementService";
 
-import {
-  checkStreakAchievements,
-} from "./achievementService";
+export const recalculateUserStreak = async (userId: string) => {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-export const recalculateUserStreak =
-  async (
-    userId: string
-  ) => {
-
-    const completedDates =
-      await getCompletedTaskDatesForStreak(
-        userId
-      );
-
-    const uniqueDays = [
-      ...new Set(
-        completedDates.map(
-          task =>
-            task.completedAt!
-              .toISOString()
-              .split("T")[0]
-        )
-      ),
-    ];
-
-    if (
-      uniqueDays.length === 0
-    ) {
-
-      await updateUserStreak(
-        userId,
-        0
-      );
-
-      return 0;
-    }
-
-    const today =
-      new Date();
-
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-    const latestCompletedDay =
-      new Date(
-        uniqueDays[0]
-      );
-
-    latestCompletedDay.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-    const daysSinceLastActivity =
-      (
-        today.getTime() -
-        latestCompletedDay.getTime()
-      ) /
-      (
-        1000 *
-        60 *
-        60 *
-        24
-      );
-
-    if (
-      daysSinceLastActivity > 1
-    ) {
-
-      await updateUserStreak(
-        userId,
-        0
-      );
-
-      return 0;
-    }
-
-    let streak = 1;
-
-    for (
-      let i = 0;
-      i < uniqueDays.length - 1;
-      i++
-    ) {
-
-      const current =
-        new Date(
-          uniqueDays[i]
-        );
-
-      const previous =
-        new Date(
-          uniqueDays[i + 1]
-        );
-
-      const diff =
-        (
-          current.getTime() -
-          previous.getTime()
-        ) /
-        (
-          1000 *
-          60 *
-          60 *
-          24
-        );
-
-      if (diff === 1) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    await updateUserStreak(
+  const completedTasks = await prisma.plannerTask.findMany({
+    where: {
       userId,
-      streak
-    );
+      isCompleted: true,
+      completedAt: { gte: thirtyDaysAgo },
+    },
+    select: { completedAt: true },
+    orderBy: { completedAt: "desc" },
+  });
 
-    await checkStreakAchievements(
-      userId,
-      streak
-    );
+  const uniqueDays = [...new Set(completedTasks.map((t) => t.completedAt!.toISOString().split("T")[0]))];
 
-    return streak;
-  };
+  if (uniqueDays.length === 0) {
+    await updateStreak(userId, 0);
+    return 0;
+  }
+
+  let streak = 0;
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+  if (uniqueDays[0] !== today && uniqueDays[0] !== yesterdayStr) {
+    await updateStreak(userId, 0);
+    return 0;
+  }
+
+  streak = 1;
+  for (let i = 0; i < uniqueDays.length - 1; i++) {
+    const current = new Date(uniqueDays[i]);
+    const next = new Date(uniqueDays[i + 1]);
+
+    const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
+    
+    if (diff === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  await updateStreak(userId, streak);
+  await checkStreakAchievements(userId, streak);
+
+  return streak;
+};
+
+
+const updateStreak = async (userId: string, streakDays: number) => {
+  return await prisma.userStats.update({
+    where: { userId },
+    data: { streakDays },
+  });
+};
