@@ -59,7 +59,26 @@ export const getDashboardData = async (userId: string) => {
       }
     }),
     prisma.notification.count({ where: { userId, isRead: false } }),
-    prisma.weakArea.findMany({ where: { userId }, select: { topic: true } }),
+    prisma.weakArea.findMany({
+      where: {
+        userId,
+      },
+
+      include: {
+        chapter: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+
+      orderBy: {
+        mistakeCount: "desc",
+      },
+
+      take: 5,
+    }),
     prisma.assessment.findFirst({
       where: {
         dueDate: { gt: new Date() },
@@ -79,7 +98,20 @@ export const getDashboardData = async (userId: string) => {
   return {
     ...user,
     notificationsCount,
-    weakAreas: weakAreas.map(wa => wa.topic),
+    weakAreas: weakAreas.map(
+      wa => ({
+        id: wa.id,
+
+        chapterId:
+          wa.chapterId,
+
+        title:
+          wa.chapter.title,
+
+        mistakeCount:
+          wa.mistakeCount,
+      })
+    ),
     upcomingAssessment,
     dailyActivities 
   };

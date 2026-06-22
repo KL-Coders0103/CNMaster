@@ -8,6 +8,7 @@ import { useThemeStore } from "../store/themeStore";
 import ProfileStackNavigator from "./ProfileStackNavigator";
 import NotesStackNavigator from "./NotesStackNavigator";
 import AssignmentStackNavigator from "./AssignmentStackNavigator";
+import QuizStackNavigator from "./QuizStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -38,7 +39,7 @@ const StudentTabNavigator = () => {
           if (route.name === "Home") iconName = "home";
           else if (route.name === "Notes") iconName = "book-open";
           else if (route.name === "Assignments") iconName = "clipboard";
-          else if (route.name === "Planner") iconName = "calendar";
+          else if (route.name === "QuizHome") iconName = "help-circle";
           else if (route.name === "Profile") iconName = "user";
 
           return <Feather name={iconName} size={24} color={color} />;
@@ -48,7 +49,7 @@ const StudentTabNavigator = () => {
       <Tab.Screen name="Home" component={StudentHomeScreen} />
       <Tab.Screen name="Notes" component={NotesStackNavigator} />
       <Tab.Screen name="Assignments" component={AssignmentStackNavigator} />
-      <Tab.Screen name="Planner" component={PlannerScreen} />
+      <Tab.Screen name="QuizHome" component={QuizStackNavigator} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} />
     </Tab.Navigator>
   );

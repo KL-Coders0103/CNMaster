@@ -15,12 +15,11 @@ const LeaderboardScreen = () => {
     fetchLeaderboard();
   }, []);
 
-  // Helper to get medal colors for top 3
   const getRankColor = (rank: number) => {
-    if (rank === 1) return "#F59E0B"; // Gold
-    if (rank === 2) return "#9CA3AF"; // Silver
-    if (rank === 3) return "#D97706"; // Bronze
-    return colors.textSecondary;      // Regular
+    if (rank === 1) return "#F59E0B"; 
+    if (rank === 2) return "#9CA3AF"; 
+    if (rank === 3) return "#D97706"; 
+    return colors.textSecondary; 
   };
 
   return (

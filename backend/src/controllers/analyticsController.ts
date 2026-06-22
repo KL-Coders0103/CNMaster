@@ -7,6 +7,7 @@ import {
 import {
   fetchConsistencyHeatmap,
   fetchRecentActivities,
+  fetchWeakAreas,
   getWeeklyAnalytics,
 } from "../services/analyticsService";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -62,6 +63,24 @@ export const fetchWeeklyAnalytics =
 
       const result =
         await fetchRecentActivities(
+          req.user!.userId
+        );
+
+      res.status(200).json(
+        result
+      );
+    }
+  );
+
+export const getWeakAreasController =
+  asyncHandler(
+    async (
+      req: Request,
+      res: Response
+    ) => {
+
+      const result =
+        await fetchWeakAreas(
           req.user!.userId
         );
 

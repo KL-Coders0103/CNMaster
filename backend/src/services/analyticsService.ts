@@ -3,6 +3,7 @@ import {
   getRecentActivities,
   getWeeklyAnalyticsData,
 } from "../repositories/analyticsRepository";
+import { getWeakAreas } from "../repositories/weakAreaRepository";
 
 export const getWeeklyAnalytics =
   async (userId: string) => {
@@ -49,5 +50,25 @@ export const fetchRecentActivities =
     return {
       success: true,
       data: activities,
+    };
+  };
+
+export const fetchWeakAreas =
+  async (
+    userId: string
+  ) => {
+
+    const weakAreas =
+      await getWeakAreas(
+        userId
+      );
+
+    return {
+      success: true,
+
+      message:
+        "Weak areas fetched successfully",
+
+      data: weakAreas,
     };
   };

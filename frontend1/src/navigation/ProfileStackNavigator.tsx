@@ -13,6 +13,7 @@ import SettingsScreen from "../screens/student/SettingsScreen";
 import ChangePasswordScreen from "../screens/student/ChangePasswordScreen";
 import DeleteAccountScreen from "../screens/student/DeleteAccountScreen";
 import AnalyticsScreen from "../screens/student/AnalyticsScreen";
+import BookmarkedQuestionsScreen from "../screens/student/BookmarkedQuestionsScreen";
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
@@ -24,6 +25,7 @@ export type ProfileStackParamList = {
   Settings: undefined;
   ChangePassword: undefined;
   DeleteAccount: undefined;
+  BookmarkedQuestions: undefined;
 };
 
 const Stack =
@@ -66,6 +68,13 @@ const ProfileStackNavigator =
         <Stack.Screen
           name="Leaderboard"
           component={LeaderboardScreen}
+        />
+
+        <Stack.Screen
+          name="BookmarkedQuestions"
+          component={
+            BookmarkedQuestionsScreen
+          }
         />
 
         <Stack.Screen

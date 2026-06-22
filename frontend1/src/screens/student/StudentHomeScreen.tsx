@@ -19,12 +19,15 @@ import { ThemePalette } from "../../theme/colors";
 import { useNotesStore } from "../../store/notesStore";
 import UpcomingAssignmentCard from "../../components/home/UpcomingAssignmentCard";
 import { useAssignmentStore } from "../../store/assignmentStore";
+import { useAnalyticsStore } from "../../store/analyticsStore";
+import DailyChallengeCard from "../../components/home/DailychallengeCard";
 
 const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { dashboard, isLoading, fetchDashboard, markAchievementViewed } = useDashboardStore();       
+  const { dashboard, isLoading, fetchDashboard, markAchievementViewed } = useDashboardStore();
+  const { fetchWeakAreas } = useAnalyticsStore();       
   const { colors } = useThemeStore(); 
   const styles = createStyles(colors); 
 
@@ -41,7 +44,8 @@ const StudentHomeScreen = () => {
     fetchDashboard();
     fetchRecentNotes();
     fetchUpcomingAssignment();
-  }, [fetchDashboard, fetchRecentNotes, fetchUpcomingAssignment]);
+    fetchWeakAreas();
+  }, [fetchDashboard, fetchRecentNotes, fetchUpcomingAssignment, fetchWeakAreas]);
 
   useEffect(() => {
     if (dashboard?.achievement && !achievementVisible) {
@@ -55,6 +59,7 @@ const StudentHomeScreen = () => {
       await Promise.all([
         fetchDashboard(),
         fetchRecentNotes(),
+        fetchWeakAreas(),
       ]);
     } catch (error) {
       console.error("Failed to refresh dashboard:", error);
@@ -87,6 +92,7 @@ const StudentHomeScreen = () => {
         }
       >
         <HomeHeader />
+        <DailyChallengeCard />
         <UpcomingDeadlineCard />
         <UpcomingAssignmentCard />
         <ContinueLearningCard />

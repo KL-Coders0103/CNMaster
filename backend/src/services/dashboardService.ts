@@ -13,10 +13,8 @@ export const getHomeDashboard = async (userId: string) => {
     throw new AppError("User not found", 404);
   }
 
-  const level = user.userStats?.level ?? 1;
   const tasks = user.plannerTasks ?? []; 
   const progressList = user.learningProgress ?? [];
-  const completedTasksCount = tasks.filter(t => t.isCompleted).length;
 
   const rawActivities = user.dailyActivities ?? [];
 
@@ -40,49 +38,87 @@ export const getHomeDashboard = async (userId: string) => {
 
   const motivation = MOTIVATIONS[today % MOTIVATIONS.length];
 
-  return {
-    success: true,
-    message: "Dashboard fetched successfully",
-    data: {
-      user: { fullName: user.fullName },
-      streak: { days: user.userStats?.streakDays ?? 0 },
-      xp: {
-        totalXp: xpData.totalXp,
-        current: xpData.currentLevelXp,
-        required: xpData.xpRequired,
-        level: xpData.level,
-      },
-      tasks: tasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        completed: task.isCompleted,
-      })),
-      continueLearning: (progressList.length > 0) ? {
-        moduleName: progressList[0].moduleName,
-        progress: progressList[0].progress,
-      } : null,
+  const weakAreas =
+  user.weakAreas ?? [];
 
-      weakAreas: user.weakAreas, 
+return {
+  success: true,
+  message: "Dashboard fetched successfully",
 
-      recommendedReview: user.weakAreas.length > 0 ? {
-        topic: user.weakAreas[0],
-        message: `You struggle with ${user.weakAreas[0]} recently. Take a quick 3-question review to level up?`
-      } : null,
-
-      notificationsCount: user.notificationsCount, 
-      
-      upcomingAssessment: user.upcomingAssessment ? {
-        id: user.upcomingAssessment.id,
-        title: user.upcomingAssessment.title,
-        type: user.upcomingAssessment.type,
-        dueDate: user.upcomingAssessment.dueDate.toISOString(),
-      } : null,
-      
-      activityHeatmap, 
-      
-      achievement,
-
-      motivation,
+  data: {
+    user: {
+      fullName: user.fullName,
     },
-  };
-};
+
+    streak: {
+      days:
+        user.userStats?.streakDays ?? 0,
+    },
+
+    xp: {
+      totalXp: xpData.totalXp,
+      current: xpData.currentLevelXp,
+      required: xpData.xpRequired,
+      level: xpData.level,
+    },
+
+    tasks: tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      completed: task.isCompleted,
+    })),
+
+    continueLearning:
+      progressList.length > 0
+        ? {
+            moduleName:
+              progressList[0].moduleName,
+
+            progress:
+              progressList[0].progress,
+          }
+        : null,
+
+    weakAreas,
+
+    recommendedReview:
+      weakAreas.length > 0
+        ? {
+            chapterId:
+              weakAreas[0].chapterId,
+
+            topic:
+              weakAreas[0].title,
+
+            message:
+              `You are struggling with ${weakAreas[0].title}. Review this chapter to improve your quiz performance.`,
+          }
+        : null,
+
+    notificationsCount:
+      user.notificationsCount,
+
+    upcomingAssessment:
+      user.upcomingAssessment
+        ? {
+            id:
+              user.upcomingAssessment.id,
+
+            title:
+              user.upcomingAssessment.title,
+
+            type:
+              user.upcomingAssessment.type,
+
+            dueDate:
+              user.upcomingAssessment.dueDate.toISOString(),
+          }
+        : null,
+
+    activityHeatmap,
+
+    achievement,
+
+    motivation,
+  },
+}};

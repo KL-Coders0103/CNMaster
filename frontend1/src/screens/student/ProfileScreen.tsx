@@ -15,6 +15,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useThemeStore } from "../../store/themeStore";
 import { getProfileScreenStyles } from "../../styles/screens/profileScreenStyles";
 import { clearTokens } from "../../utils/secureStorage";
+import WeakAreasCard from "../../components/home/WeakAreasCard";
 
 const ProfileScreen = ({ navigation }: any) => {
   const { profile, completion, fetchProfile, uploadProfileAvatar, removeProfileAvatar } = useProfileStore();
@@ -93,6 +94,8 @@ const ProfileScreen = ({ navigation }: any) => {
           achievements={profile.achievementCount}
         />
 
+        <WeakAreasCard />
+
         <ProfileCompletionCard percentage={completion} />
 
         {/* --- MENU SECTION --- */}
@@ -106,6 +109,7 @@ const ProfileScreen = ({ navigation }: any) => {
           
           <ProfileMenuItem title="Edit Profile" icon="edit-2" onPress={() => navigation.navigate("EditProfile")} />
           <ProfileMenuItem title="Achievements" icon="award" onPress={() => navigation.navigate("Achievements")} />
+          <ProfileMenuItem title="Bookmarks" icon="bookmark" onPress={() => navigation.navigate("BookmarkedQuestions")}/>
           <ProfileMenuItem title="Activity History" icon="activity" onPress={() => navigation.navigate("ActivityHistory")} />
           <ProfileMenuItem title="Leaderboard" icon="bar-chart-2" onPress={() => navigation.navigate("Leaderboard")} />
           <ProfileMenuItem title="Settings" icon="settings" onPress={() => navigation.navigate("Settings")} />

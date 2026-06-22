@@ -1,57 +1,94 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useDashboardStore } from "../../store/dashboardStore"; 
+import { useNavigation } from "@react-navigation/native";
+
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
+import { useAnalyticsStore } from "../../store/analyticsStore";
 
 const WeakAreasCard = () => {
-  const dashboard = useDashboardStore(state => state.dashboard);
-  const weakAreas = dashboard?.weakAreas ?? [];
-  const recommendedReview = dashboard?.recommendedReview;
+  const navigation = useNavigation<any>();
+  const weakAreas = useAnalyticsStore((state) => state.weakAreas);
   const { colors } = useThemeStore();
   const styles = createStyles(colors);
 
-  if (weakAreas.length === 0) return null; 
+  if (!weakAreas || weakAreas.length === 0) {
+    return null;
+  }
 
-  const remainingTopics = weakAreas.filter(topic => topic !== recommendedReview?.topic);
+  const recommendedTopic = weakAreas[0];
+  const otherTopics = weakAreas.slice(1);
+
+  // Safe fallback in case chapter data is missing
+  const topicTitle = recommendedTopic?.chapter?.title || "this topic";
 
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Learning Coach</Text>
 
       <View style={styles.card}>
-        {recommendedReview && (
-          <View style={styles.smartReviewContainer}>
-            <View style={styles.headerRow}>
-              <View style={styles.iconBadge}>
-                <Feather name="target" size={16} color={colors.primary} />
-              </View>
-              <Text style={styles.smartReviewBadge}>Recommended Review</Text>
+        {/* Recommended Focus Area */}
+        <View style={styles.smartReviewContainer}>
+          <View style={styles.headerRow}>
+            <View style={styles.iconBadge}>
+              <Feather name="crosshair" size={16} color={colors.primary} />
             </View>
-
-            <Text style={styles.smartReviewText}>
-              {recommendedReview.message}
-            </Text>
-
-            <TouchableOpacity 
-              style={styles.actionButton}
-              activeOpacity={0.8}
-              onPress={() => console.log(`Start Quick Quiz for: ${recommendedReview.topic}`)}
-            >
-              <Text style={styles.actionButtonText}>Start 3-Min Quiz</Text>
-              <Feather name="arrow-right" size={16} color={colors.white} />
-            </TouchableOpacity>
+            <Text style={styles.smartReviewBadge}>Recommended Focus</Text>
           </View>
-        )}
 
-        {remainingTopics.length > 0 && (
-          <View style={styles.chipsSection}>
-            <Text style={styles.subtitle}>Other areas to watch:</Text>
-            <View style={styles.chipsContainer}>
-              {remainingTopics.map(topic => (
-                <TouchableOpacity key={topic} style={styles.chip} activeOpacity={0.7}>
-                  <Text style={styles.chipText}>{topic}</Text>
+          <Text style={styles.smartReviewText}>
+            You seem to be struggling with <Text style={styles.highlightText}>{topicTitle}</Text>. 
+            You have made {recommendedTopic.mistakeCount} mistakes in this area recently.
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.actionButton}
+            onPress={() =>
+              navigation.navigate("QuizInstructions", {
+                chapterId: recommendedTopic.chapter?.id,
+                difficulty: "MEDIUM",
+              })
+            }
+          >
+            <Text style={styles.actionButtonText}>Review Topic Now</Text>
+            <Feather name="arrow-right" size={16} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Other Weak Areas List */}
+        {otherTopics.length > 0 && (
+          <View style={styles.listSection}>
+            <Text style={styles.listSubtitle}>Other areas to improve</Text>
+
+            <View style={styles.listContainer}>
+              {otherTopics.map((area) => (
+                <TouchableOpacity
+                  key={area.id}
+                  style={styles.listItem}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    navigation.navigate("QuizInstructions", {
+                      chapterId: area.chapter?.id,
+                      difficulty: "MEDIUM",
+                    })
+                  }
+                >
+                  <View style={styles.listItemTextContainer}>
+                    <Text style={styles.listItemTitle} numberOfLines={1}>
+                      {area.chapter?.title || "Unknown Topic"}
+                    </Text>
+                    <Text style={styles.mistakeText}>
+                      {area.mistakeCount} mistakes
+                    </Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -62,103 +99,129 @@ const WeakAreasCard = () => {
   );
 };
 
-const createStyles = (colors: ThemePalette) => StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-    marginBottom: 40, // Extra bottom padding for scroll clearance
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.textPrimary,
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: "hidden",
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  smartReviewContainer: {
-    padding: 20,
-    backgroundColor: "rgba(37, 99, 235, 0.05)", // Very subtle primary tint
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  iconBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: "rgba(37, 99, 235, 0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  smartReviewBadge: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.primary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  smartReviewText: {
-    fontSize: 15,
-    color: colors.textPrimary,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  actionButton: {
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  actionButtonText: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  chipsSection: {
-    padding: 20,
-  },
-  subtitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: 12,
-  },
-  chipsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  chip: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textPrimary,
-  },
-});
+const createStyles = (colors: ThemePalette) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 24,
+      marginBottom: 40,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: colors.textPrimary,
+      marginBottom: 16,
+      letterSpacing: -0.5,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.04,
+      shadowRadius: 24,
+      elevation: 4,
+    },
+    smartReviewContainer: {
+      padding: 24,
+      backgroundColor: colors.primaryLight || "rgba(37,99,235,0.05)",
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    iconBadge: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 1,
+    },
+    smartReviewBadge: {
+      fontSize: 13,
+      fontWeight: "800",
+      color: colors.primary,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    smartReviewText: {
+      color: colors.textPrimary,
+      lineHeight: 24,
+      fontSize: 15,
+      marginBottom: 24,
+    },
+    highlightText: {
+      color: colors.primary,
+      fontWeight: "800",
+    },
+    actionButton: {
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 16,
+      paddingVertical: 16,
+      gap: 8,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    actionButtonText: {
+      color: colors.white,
+      fontWeight: "800",
+      fontSize: 15,
+    },
+    listSection: {
+      padding: 24,
+      backgroundColor: colors.surface,
+    },
+    listSubtitle: {
+      color: colors.textSecondary,
+      marginBottom: 16,
+      fontWeight: "700",
+      fontSize: 14,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    listContainer: {
+      gap: 12,
+    },
+    listItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.background,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    listItemTextContainer: {
+      flex: 1,
+      marginRight: 12,
+    },
+    listItemTitle: {
+      color: colors.textPrimary,
+      fontWeight: "700",
+      fontSize: 15,
+      marginBottom: 4,
+    },
+    mistakeText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.error || "#EF4444",
+    },
+  });
 
 export default WeakAreasCard;

@@ -10,6 +10,7 @@ import {
   fetchWeeklyAnalytics,
   getConsistencyHeatmapController,
   getRecentActivitiesController,
+  getWeakAreasController,
 } from "../controllers/analyticsController";
 import { getLearningAnalyticsController } from "../controllers/learningAnalyticsController";
 
@@ -38,6 +39,12 @@ router.get(
   "/activities",
   authenticate,
   getRecentActivitiesController
+);
+
+router.get(
+  "/weak-areas",
+  authenticate,
+  getWeakAreasController
 );
 
 export default router;
