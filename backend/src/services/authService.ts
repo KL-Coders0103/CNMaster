@@ -120,6 +120,10 @@ export const loginUser = async (loginData: LoginInput) => {
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) throw new AppError("Invalid email/mobile or password", 401);
 
+  if (user.isSuspended) {
+    throw new AppError("Your account has been suspended. Please contact the administrator.", 403);
+  }
+
   const accessToken = generateAccessToken({ userId: user.id, role: user.role });
   const refreshToken = generateRefreshToken({ userId: user.id, role: user.role, type: "refresh" });
 

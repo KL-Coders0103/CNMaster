@@ -5,7 +5,7 @@ const storage = multer.memoryStorage();
 
 export const uploadAvatar = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -34,6 +34,18 @@ export const uploadAssignment = multer({
       cb(null, true);
     } else {
       cb(new AppError("Only PDF, DOCX, Images, and ZIP files are allowed", 400));
+    }
+  },
+});
+
+export const uploadNote = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 }, 
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "application/pdf" || file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new AppError("Only PDF and Image files are allowed for notes", 400));
     }
   },
 });
