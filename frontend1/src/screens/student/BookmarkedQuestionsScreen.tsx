@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
 import { getBookmarks } from "../../services/bookmarkService";
+import Toast from "react-native-toast-message";
 
 const BookmarkedQuestionsScreen = () => {
   const navigation = useNavigation();
@@ -28,17 +29,17 @@ const BookmarkedQuestionsScreen = () => {
   }, []);
 
   const loadBookmarks = async () => {
-    try {
-      setLoading(true);
-      const response = await getBookmarks();
-      // Ensure we fallback to an empty array if data is malformed
-      setBookmarks(response?.data?.data || []);
-    } catch (error) {
-      console.log("Failed to load bookmarks:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const response = await getBookmarks();
+    setBookmarks(response?.data?.data || []);
+  } catch (error) {
+    Toast.show({ type: "error", text1: "Failed to load bookmarks" }); // NEW: Inform user
+    console.log("Failed to load bookmarks:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderItem = useCallback(
     ({ item, index }: { item: any; index: number }) => (

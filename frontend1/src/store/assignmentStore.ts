@@ -147,32 +147,20 @@ export const useAssignmentStore =
             });
           },
 
-      fetchAssignmentDetails:
-        async id => {
-
-          try {
-
-            set({
-              isLoading: true,
-            });
-
-            const response =
-              await getAssignmentDetails(
-                id
-              );
-
-            set({
-              assignment:
-                response.data || [],
-            });
-
-          } finally {
-
-            set({
-              isLoading: false,
-            });
-          }
-        },
+      fetchAssignmentDetails: async (id: string) => {
+        try {
+          set({ isLoading: true });
+          
+          const response = await getAssignmentDetails(id);
+          
+          set({
+            assignment: response.data || null, 
+          });
+          
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
         submitStudentAssignment:
           async (

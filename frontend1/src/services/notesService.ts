@@ -1,47 +1,19 @@
 import { api } from "../api/axios";
 
+export const getChapters = async () => {
+  const response = await api.get("/notes/chapters");
+  return response.data;
+};
 
-export const getSubjects =
-  async () => {
-    const response =
-      await api.get(
-        "/notes/subjects"
-      );
-
-    return response.data;
-  };
-
-export const getChapters =
-  async (
-    subjectId: string
-  ) => {
-    const response =
-      await api.get(
-        `/notes/chapters/${subjectId}`
-      );
-
-    return response.data;
-  };
-
-export const getNotes =
-  async (
-    search?: string,
-    chapterId?: string
-  ) => {
-
-    const response =
-      await api.get(
-        "/notes",
-        {
-          params: {
-            search,
-            chapterId,
-          },
-        }
-      );
-
-    return response.data;
-  };
+export const getNotes = async (search?: string, chapterId?: string) => {
+  const response = await api.get("/notes", {
+    params: {
+      search,
+      chapterId,
+    },
+  });
+  return response.data;
+};
 
 export const getNoteDetails =
   async (

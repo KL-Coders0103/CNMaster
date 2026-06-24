@@ -1,14 +1,12 @@
 import { create } from "zustand";
 
 import {
-  Subject,
   Chapter,
   Note,
   RecentNote,
 } from "../types/notes";
 
 import {
-  getSubjects,
   getChapters,
   getNotes,
   bookmarkNote,
@@ -17,22 +15,18 @@ import {
 } from "../services/notesService";
 
 type NotesState = {
-  subjects: Subject[];
   chapters: Chapter[];
   notes: Note[];
   recentNotes: RecentNote[];
 
-  selectedSubject: string | null;
   selectedChapter: string | null;
 
   search: string;
   isLoading: boolean;
 
-  fetchSubjects: () => Promise<void>;
   fetchRecentNotes: () => Promise<void>;
-  fetchChapters: (subjectId: string) => Promise<void>;
+  fetchChapters: () => Promise<void>;
   fetchNotes: () => Promise<void>;
-  setSelectedSubject: (subjectId: string | null) => Promise<void>;
   setSelectedChapter: (chapterId: string | null) => Promise<void>;
   setSearch: (search: string) => Promise<void>;
   bookmark: (noteId: string) => Promise<void>;
@@ -40,43 +34,13 @@ type NotesState = {
 };
 
 export const useNotesStore = create<NotesState>((set, get) => ({
-  subjects: [],
   chapters: [],
   notes: [],
   recentNotes: [],
 
-  selectedSubject: null,
   selectedChapter: null,
   search: "",
   isLoading: false,
-
-  fetchSubjects: async () => {
-    set({ isLoading: true });
-
-    try {
-      const response = await getSubjects();
-      const fetchedSubjects = response.data || [];
-
-      set({ subjects: fetchedSubjects });
-
-      // Clean UX Optimization: Auto-select subject if only one exists in the database
-      if (fetchedSubjects.length === 1) {
-        const singleSubjectId = fetchedSubjects[0].id;
-        
-        set({
-          selectedSubject: singleSubjectId,
-          selectedChapter: null, // Reset selected chapter to clear old filters
-        });
-
-        // Fetch the corresponding chapters immediately
-        await get().fetchChapters(singleSubjectId);
-      }
-    } catch (error) {
-      console.log("Error fetching subjects:", error);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
 
   fetchRecentNotes: async () => {
     try {
@@ -86,14 +50,22 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       console.log(error);
     }
   },
-
-  fetchChapters: async (subjectId) => {
+  fetchChapters: async () => {
+    set({ isLoading: true });
     try {
-      const response = await getChapters(subjectId);
-      set({ chapters: response.data });
+      const response = await getChapters();
+      const fetchedChapters = response.data || [];
+      
+      set({ chapters: fetchedChapters });
+
+      if (fetchedChapters.length === 1) {
+        await get().setSelectedChapter(fetchedChapters[0].id);
+      }
     } catch (error) {
       console.log("Error fetching chapters:", error);
       set({ chapters: [] });
+    } finally {
+      set({ isLoading: false });
     }
   },
 
@@ -113,21 +85,6 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
-  },
-
-  setSelectedSubject: async (subjectId) => {
-    set({
-      selectedSubject: subjectId,
-      selectedChapter: null,
-    });
-
-    if (subjectId) {
-      await get().fetchChapters(subjectId);
-    } else {
-      set({ chapters: [] });
-    }
-
-    await get().fetchNotes();
   },
 
   setSelectedChapter: async (chapterId) => {

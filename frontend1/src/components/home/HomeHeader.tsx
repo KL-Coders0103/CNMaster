@@ -2,13 +2,15 @@ import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons"; 
 import NetInfo from "@react-native-community/netinfo";
+import { useNavigation } from "@react-navigation/native";
 
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
 
 const HomeHeader = () => {
-  const { dashboard, markNotificationsAsRead, isOffline, setOfflineStatus } = useDashboardStore();
+  const navigation = useNavigation<any>();
+  const { dashboard, isOffline, setOfflineStatus } = useDashboardStore();
   const { colors } = useThemeStore();
   const styles = createStyles(colors);
 
@@ -60,11 +62,22 @@ const HomeHeader = () => {
         </View>
 
         <View style={styles.iconContainer}>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+          {/* SEARCH BUTTON WIRED UP */}
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("Search")} 
+          >
             <Feather name="search" size={22} color={colors.textPrimary} /> 
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.7} onPress={markNotificationsAsRead}>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            activeOpacity={0.7} 
+            onPress={() => {
+              navigation.navigate("Notifications");
+            }}
+          >
             <View>
               <Feather name="bell" size={22} color={colors.textPrimary} />
               {(dashboard?.notificationsCount ?? 0) > 0 && (

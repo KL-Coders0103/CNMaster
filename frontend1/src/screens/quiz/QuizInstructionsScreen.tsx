@@ -28,7 +28,6 @@ const QuizInstructionsScreen = ({ route, navigation }: Props) => {
     try {
       const data = await startQuiz(chapterId, difficulty);
       
-      // Safety check in case the API fails silently
       if (!data || !data.attemptId) {
         throw new Error("Invalid quiz data received");
       }
@@ -37,12 +36,23 @@ const QuizInstructionsScreen = ({ route, navigation }: Props) => {
         attemptId: data.attemptId,
         questions: data.questions,
       });
-    } catch (error) {
-      Alert.alert(
-        "Error Starting Quiz",
-        "We couldn't load the questions. Please check your connection and try again.",
-        [{ text: "OK" }]
-      );
+    } catch (error: any) {
+      // CRITICAL FIX: Gracefully handle the empty database 404
+      const backendMessage = error.response?.data?.message;
+      
+      if (error.response?.status === 404 && backendMessage) {
+        Alert.alert(
+          "Coming Soon!", 
+          backendMessage, // This will print "No questions found..."
+          [{ text: "Got it" }]
+        );
+      } else {
+        Alert.alert(
+          "Error Starting Quiz",
+          "We couldn't load the questions. Please check your connection and try again.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
 

@@ -68,8 +68,7 @@ const ConsistencyHeatmapCard = () => {
             </Text>
           ))}
         </View>
-
-        {/* X-Axis: Scrollable Columns */}
+        
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -82,7 +81,7 @@ const ConsistencyHeatmapCard = () => {
                   key={dayIndex}
                   style={[
                     styles.heatBox,
-                    { backgroundColor: getBoxColor(day.intensity) },
+                    { backgroundColor: getBoxColor(day.intensity) }, 
                   ]}
                 />
               ))}

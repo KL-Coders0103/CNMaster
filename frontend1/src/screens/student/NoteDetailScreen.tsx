@@ -21,6 +21,7 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
   const styles = createStyles(colors);
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false); // CRITICAL FIX: Added error state
   const [note, setNote] = useState<NoteDetail | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloading, setDownloading] = useState(false);
@@ -34,8 +35,13 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
 
   const loadNote = async () => {
     try {
+      setLoading(true);
+      setError(false);
       const response = await getNoteDetails(noteId);
       setNote(response.data);
+    } catch (err) {
+      setError(true); // Catch the error so we don't trap the user
+      Toast.show({ type: "error", text1: "Failed to load note details" });
     } finally {
       setLoading(false);
     }
@@ -69,7 +75,7 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
 
       await registerDownload(note.id);
       Toast.show({ type: "success", text1: "Downloaded Successfully" });
-    } catch (error) {
+    } catch (err) {
       Toast.show({ type: "error", text1: "Download failed" });
     } finally {
       setDownloading(false);
@@ -85,7 +91,23 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
     );
   }
 
-  if (!note) return null;
+  // CRITICAL FIX: Provide an escape hatch if the note fails to load
+  if (error || !note) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+            <Feather name="arrow-left" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
+        <View style={[styles.loadingContainer, { flex: 0.8 }]}>
+          <Feather name="alert-circle" size={48} color={colors.textMuted || "rgba(0,0,0,0.2)"} style={{ marginBottom: 16 }} />
+          <Text style={styles.title}>Note Unavailable</Text>
+          <Text style={[styles.description, { textAlign: "center" }]}>This note may have been removed or there is a network issue.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -115,7 +137,7 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
           <Text style={styles.description}>{note.description}</Text>
 
           <View style={styles.tagsContainer}>
-            <View style={styles.tag}><Text style={styles.tagText}>{note.subject}</Text></View>
+            <View style={styles.tag}><Text style={styles.tagText}>Computer Networks</Text></View>
             <View style={styles.tag}><Text style={styles.tagText}>{note.chapter}</Text></View>
           </View>
         </View>
@@ -157,7 +179,7 @@ const NoteDetailScreen = ({ route, navigation }: Props) => {
 
 const createStyles = (colors: ThemePalette) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background, paddingHorizontal: 20 },
   scrollContent: { padding: 20, paddingBottom: 100 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   iconButton: { padding: 8, backgroundColor: colors.surface, borderRadius: 12 },

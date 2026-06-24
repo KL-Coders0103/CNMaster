@@ -2,11 +2,14 @@ import React, { useEffect, useRef } from "react";
 import { View, Text, Image, StyleSheet, Animated } from "react-native";
 import { useAuthStore } from "../store/authStore";
 import { initializeAuth } from "../services/authBootstrap";
+import { useThemeStore } from "../store/themeStore"; // CRITICAL FIX: Bring in the theme store
 
 const SplashScreen = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  
   const isInitializing = useAuthStore((state) => state.isInitializing);
+  const { colors } = useThemeStore(); // Extract your dynamic colors
 
   useEffect(() => {
     initializeAuth();
@@ -19,18 +22,30 @@ const SplashScreen = () => {
   }, []);
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: colors.background, // Dynamic background
+          opacity: fadeAnim, 
+          transform: [{ scale: scaleAnim }] 
+        }
+      ]}
+    >
       <Image 
         source={require("../../assets/icon.png")} 
         style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>CN MASTER</Text>
+      {/* Dynamic text color */}
+      <Text style={[styles.title, { color: colors.textPrimary }]}>CN MASTER</Text>
       
       {/* Subtle loader for when backend logic takes extra time */}
       {isInitializing && (
         <View style={styles.loaderContainer}>
-          <Text style={styles.loaderText}>Syncing your progress...</Text>
+          <Text style={[styles.loaderText, { color: colors.textSecondary }]}>
+            Syncing your progress...
+          </Text>
         </View>
       )}
     </Animated.View>
@@ -42,7 +57,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF", // Premium solid white
+    // Background color removed from here to allow inline dynamic styling
   },
   logo: {
     width: 120,
@@ -52,7 +67,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#1E293B",
     letterSpacing: 1,
   },
   loaderContainer: {
@@ -60,7 +74,6 @@ const styles = StyleSheet.create({
     bottom: 60,
   },
   loaderText: {
-    color: "#94A3B8",
     fontSize: 12,
     fontWeight: "600",
   },

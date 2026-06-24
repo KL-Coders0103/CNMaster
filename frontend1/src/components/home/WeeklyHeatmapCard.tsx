@@ -71,8 +71,10 @@ const WeeklyHeatmapCard = () => {
     return "#216E39"; 
   };
 
+  // CRITICAL FIX: Manually split the YYYY-MM-DD string to force local timezone parsing
   const formatDisplayDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const [year, month, day] = dateString.split("-").map(Number);
+    const date = new Date(year, month - 1, day); 
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 

@@ -28,6 +28,9 @@ const UpcomingDeadlineCard = () => {
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
           minutes: Math.floor((difference / 1000 / 60) % 60),
         });
+      } else {
+        // CRITICAL FIX: Ensure the timer snaps to 0 when the deadline passes
+        setTimeLeft({ days: 0, hours: 0, minutes: 0 });
       }
     };
 

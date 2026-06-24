@@ -1,3 +1,6 @@
+export type UserRole = "student" | "teacher" | "admin";
+export type AuthProvider = "email" | "google" | "email_google";
+
 export interface Profile {
   id: string;
   fullName: string;
@@ -7,8 +10,8 @@ export interface Profile {
   year?: string | null;
   branch?: string | null;
   section?: string | null;
-  provider: string;
-  role: string;
+  provider: AuthProvider; 
+  role: UserRole; 
   level: number;
   xpCurrent: number;
   xpRequired: number;

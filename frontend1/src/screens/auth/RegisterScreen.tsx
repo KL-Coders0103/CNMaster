@@ -59,18 +59,25 @@ const RegisterScreen = ({ navigation }: Props) => {
     try {
       setIsGoogleLoading(true);
       const user = await signInWithGoogle();
+      
       if (!user) { 
-        setIsGoogleLoading(false);
-        return;
+        return; // The finally block will handle the loading state
       }
+      
       Toast.show({ type: "success", text1: "Google Sign In Successful" });
-      if (!user.isProfileCompleted) navigation.navigate("CompleteProfile");
+      
+      if (!user.isProfileCompleted) {
+        navigation.navigate("CompleteProfile");
+      }
     } catch (error: any) {
       Toast.show({
         type: "error",
         text1: "Google Sign In Failed",
         text2: error?.message ?? "Something went wrong",
       });
+    } finally {
+      // CRITICAL FIX: Guarantee the loader turns off whether it succeeds or fails
+      setIsGoogleLoading(false);
     }
   };
 

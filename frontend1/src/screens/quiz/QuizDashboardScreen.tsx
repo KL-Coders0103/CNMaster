@@ -1,17 +1,13 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
+import { useNotesStore } from "../../store/notesStore";
+import CustomDropdown from "../../components/common/CustomDropdown";
 
 type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
@@ -21,13 +17,24 @@ const QuizDashboardScreen = () => {
   const styles = createStyles(colors);
 
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("EASY");
+  const [selectedChapterTitle, setSelectedChapterTitle] = useState<string>("");
 
-  // TODO: Replace with the actual selected chapter ID from your app state
-  const activeChapterId = "REPLACE_WITH_REAL_ID"; 
+  // CRITICAL FIX: Replaced fetchSubjects with fetchChapters
+  const { chapters, fetchChapters } = useNotesStore();
+
+  useEffect(() => {
+    // Ensure we have the chapters loaded directly
+    fetchChapters();
+  }, []);
 
   const handleStartQuiz = () => {
+    // Find the actual ID from the selected title
+    const activeChapter = chapters.find(c => c.title === selectedChapterTitle);
+    
+    if (!activeChapter) return;
+
     navigation.navigate("QuizInstructions", {
-      chapterId: activeChapterId,
+      chapterId: activeChapter.id,
       difficulty: selectedDifficulty,
     });
   };
@@ -38,9 +45,10 @@ const QuizDashboardScreen = () => {
     { level: "HARD", icon: "zap", label: "Hard" },
   ];
 
+  const chapterTitles = chapters.map(c => c.title);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      {/* Header with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={colors.textPrimary} />
@@ -49,7 +57,6 @@ const QuizDashboardScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.iconWrapper}>
             <Feather name="target" size={32} color={colors.primary} />
@@ -60,7 +67,6 @@ const QuizDashboardScreen = () => {
           </Text>
         </View>
 
-        {/* Info Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Feather name="award" size={20} color={colors.warning} />
@@ -69,7 +75,6 @@ const QuizDashboardScreen = () => {
           <Text style={styles.cardDescription}>
             Complete a quiz today to maintain your learning streak and boost your leaderboard ranking.
           </Text>
-          
           <View style={styles.statsRow}>
             <View style={styles.statPill}>
               <Feather name="clock" size={14} color={colors.textSecondary} />
@@ -82,7 +87,17 @@ const QuizDashboardScreen = () => {
           </View>
         </View>
 
-        {/* Difficulty Selector */}
+        <Text style={styles.sectionTitle}>Select Topic</Text>
+        <View style={{ marginBottom: 24 }}>
+          <CustomDropdown 
+            label=""
+            placeholder="Choose a chapter to review..."
+            value={selectedChapterTitle}
+            options={chapterTitles}
+            onSelect={setSelectedChapterTitle}
+          />
+        </View>
+
         <Text style={styles.sectionTitle}>Select Difficulty</Text>
         <View style={styles.difficultyContainer}>
           {difficultyLevels.map((item) => {
@@ -117,18 +132,17 @@ const QuizDashboardScreen = () => {
 
       </ScrollView>
 
-      {/* Sticky Bottom Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, !selectedChapterTitle && { opacity: 0.5 }]}
           activeOpacity={0.8}
           onPress={handleStartQuiz}
+          disabled={!selectedChapterTitle} // Disable until they pick a topic
         >
           <Text style={styles.buttonText}>Start {selectedDifficulty} Quiz</Text>
           <Feather name="arrow-right" size={20} color={colors.white} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
-
     </SafeAreaView>
   );
 };

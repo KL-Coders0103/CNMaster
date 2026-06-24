@@ -67,7 +67,7 @@ export const logoutAllDevices = async (): Promise<LogoutAllResponse> => {
   return response.data;
 };
 
-export const googleLogin = async (payload: { idToken: string }) => {
+export const googleLogin = async (payload: { idToken: string }): Promise<LoginResponse> => {
   const response = await api.post("/auth/google", payload);
   return response.data;
 };

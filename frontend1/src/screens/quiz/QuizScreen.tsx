@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -23,7 +24,7 @@ const QuizScreen = ({ route, navigation }: Props) => {
   const { submitQuiz } = useQuizStore();
   const { colors } = useThemeStore();
   const styles = createStyles(colors);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState(600); 
@@ -33,7 +34,6 @@ const QuizScreen = ({ route, navigation }: Props) => {
     latestAnswers.current = answers;
   }, [answers]);
 
-  // DEFENSE 1: If questions is undefined or empty, show a safe fallback UI instead of crashing
   if (!questions || questions.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -74,13 +74,26 @@ const QuizScreen = ({ route, navigation }: Props) => {
   }, []);
 
   const handleAutoSubmit = async () => {
-    await submitQuiz(latestAnswers.current);
-    navigation.replace("QuizResult", { attemptId });
+    try {
+      setIsSubmitting(true);
+      await submitQuiz(latestAnswers.current);
+      navigation.replace("QuizResult", { attemptId });
+    } catch (error) {
+      Alert.alert("Error", "Failed to submit automatically. Check your connection.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async () => {
-    await submitQuiz(answers);
-    navigation.replace("QuizResult", { attemptId });
+    try {
+      setIsSubmitting(true);
+      await submitQuiz(answers);
+      navigation.replace("QuizResult", { attemptId });
+    } catch (error) {
+      Alert.alert("Error", "Failed to submit quiz. Please try again.");
+      setIsSubmitting(false); // Only set false if it fails, otherwise it replaces the screen!
+    }
   };
 
   const handleQuit = () => {
@@ -89,7 +102,7 @@ const QuizScreen = ({ route, navigation }: Props) => {
       {
         text: "Quit",
         style: "destructive",
-        onPress: () => navigation.goBack(),
+        onPress: () => navigation.popToTop(), 
       },
     ]);
   };
@@ -193,18 +206,24 @@ const QuizScreen = ({ route, navigation }: Props) => {
       <View style={styles.footer}>
         {index === questions.length - 1 ? (
           <TouchableOpacity
-            style={[styles.submitButton, !selectedAnswer && styles.buttonDisabled]}
+            style={[styles.submitButton, (!selectedAnswer || isSubmitting) && styles.buttonDisabled]}
             onPress={handleSubmit}
-            disabled={!selectedAnswer}
+            disabled={!selectedAnswer || isSubmitting}
           >
-            <Text style={styles.buttonText}>Submit Quiz</Text>
-            <Feather name="check" size={20} color={colors.white} style={styles.btnIcon} />
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>Submit Quiz</Text>
+                <Feather name="check" size={20} color={colors.white} style={styles.btnIcon} />
+              </>
+            )}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.button, !selectedAnswer && styles.buttonDisabled]}
+            style={[styles.button, (!selectedAnswer || isSubmitting) && styles.buttonDisabled]}
             onPress={nextQuestion}
-            disabled={!selectedAnswer} 
+            disabled={!selectedAnswer || isSubmitting} 
           >
             <Text style={styles.buttonText}>Next Question</Text>
             <Feather name="arrow-right" size={20} color={colors.white} style={styles.btnIcon} />

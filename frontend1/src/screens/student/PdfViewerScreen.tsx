@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<NotesStackParamList, "PdfViewer">;
 const PdfViewerScreen = ({ route, navigation }: Props) => {
   const { colors } = useThemeStore();
   const styles = createStyles(colors);
-
+  const [progressLoaded, setProgressLoaded] = useState(false);
   const { noteId, pdfUrl, title } = route.params;
 
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,6 @@ const PdfViewerScreen = ({ route, navigation }: Props) => {
   const [pages, setPages] = useState(0);
   const [initialPage, setInitialPage] = useState(1);
 
-  // Check if the URL is a local device file (Offline Note) or a remote web URL
   const isLocalFile = pdfUrl.startsWith("file://") || pdfUrl.startsWith("/");
 
   useEffect(() => {
@@ -37,16 +36,18 @@ const PdfViewerScreen = ({ route, navigation }: Props) => {
   }, []);
 
   const loadReadingProgress = async () => {
-    try {
-      const response = await getReadingProgress(noteId);
-      if (response.data?.currentPage) {
-        setInitialPage(response.data.currentPage);
-        setPage(response.data.currentPage);
-      }
-    } catch (error) {
-      console.log("No previous progress found");
+  try {
+    const response = await getReadingProgress(noteId);
+    if (response.data?.currentPage) {
+      setInitialPage(response.data.currentPage);
+      setPage(response.data.currentPage);
     }
-  };
+  } catch (error) {
+    console.log("No previous progress found");
+  } finally {
+    setProgressLoaded(true);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -63,37 +64,39 @@ const PdfViewerScreen = ({ route, navigation }: Props) => {
         <View style={{ width: 40 }} />
       </View>
 
-      {loading ? (
+      {loading || !progressLoaded ? (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null}
 
-      <Pdf
-        page={initialPage}
-        trustAllCerts={false}
-        source={{ 
-          uri: pdfUrl, 
-          cache: !isLocalFile 
-        }}
-        onLoadComplete={(numberOfPages) => {
-          setPages(numberOfPages);
-          setLoading(false);
-        }}
-        onPageChanged={async (currentPage) => {
-          setPage(currentPage);
-          try {
-            await saveReadingProgress(noteId, currentPage, pages);
-          } catch (error) {
-            console.log("Progress save failed");
-          }
-        }}
-        onError={(error) => {
-          console.log("PDF Error: ", error);
-          setLoading(false);
-        }}
-        style={styles.pdfContainer}
-      />
+      {progressLoaded && (
+        <Pdf
+          page={initialPage}
+          trustAllCerts={false}
+          source={{ 
+            uri: pdfUrl, 
+            cache: !isLocalFile 
+          }}
+          onLoadComplete={(numberOfPages) => {
+            setPages(numberOfPages);
+            setLoading(false);
+          }}
+          onPageChanged={async (currentPage) => {
+            setPage(currentPage);
+            try {
+              await saveReadingProgress(noteId, currentPage, pages);
+            } catch (error) {
+              console.log("Progress save failed");
+            }
+          }}
+          onError={(error) => {
+            console.log("PDF Error: ", error);
+            setLoading(false);
+          }}
+          style={styles.pdfContainer}
+        />
+      )}
 
       {(!loading && pages > 0) ? (
         <View style={styles.floatingBadge}>

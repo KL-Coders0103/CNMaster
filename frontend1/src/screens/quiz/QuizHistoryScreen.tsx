@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ const QuizHistoryScreen = () => {
   const styles = createStyles(colors);
 
   const [history, setHistory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
@@ -27,10 +29,13 @@ const QuizHistoryScreen = () => {
 
   const loadHistory = async () => {
     try {
+      setIsLoading(true); // Start loading
       const response = await api.get("/quizzes/history");
       setHistory(response.data.data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -82,15 +87,21 @@ const QuizHistoryScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Feather name="inbox" size={32} color={colors.textSecondary} />
+          isLoading ? (
+            <View style={styles.emptyContainer}>
+               <ActivityIndicator size="large" color={colors.primary} />
             </View>
-            <Text style={styles.emptyTitle}>No Quiz History</Text>
-            <Text style={styles.emptySubtitle}>
-              Complete quizzes to start tracking your performance and history.
-            </Text>
-          </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Feather name="inbox" size={32} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>No Quiz History</Text>
+              <Text style={styles.emptySubtitle}>
+                Complete quizzes to start tracking your performance and history.
+              </Text>
+            </View>
+          )
         }
       />
     </SafeAreaView>

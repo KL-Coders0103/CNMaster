@@ -35,7 +35,6 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
     submitStudentAssignment,
   } = useAssignmentStore();
 
-  // Local UI States for async actions
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -65,11 +64,20 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
   };
 
   const handleDownload = async () => {
-    if (!assignment) return;
+    if (!assignment?.assignmentUrl) {
+      Toast.show({ type: "error", text1: "No file attached to this assignment" });
+      return;
+    }
     
     try {
       setIsDownloading(true);
-      const fileUri = FileSystem.documentDirectory + `${assignment.title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+      
+      const urlParts = assignment.assignmentUrl.split(".");
+      const extension = urlParts.length > 1 ? urlParts.pop()?.split(/#|\?/)[0] : "pdf"; 
+      
+      const sanitizedTitle = assignment.title.replace(/[^a-zA-Z0-9]/g, "_");
+      const fileUri = `${FileSystem.documentDirectory}${sanitizedTitle}.${extension}`;
+      
       const result = await FileSystem.downloadAsync(assignment.assignmentUrl, fileUri);
       
       await Sharing.shareAsync(result.uri);
@@ -119,18 +127,15 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
             <Feather name="arrow-left" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
-        {/* Title & Description */}
         <Text style={styles.title}>{assignment.title}</Text>
         <Text style={styles.description}>{assignment.description}</Text>
 
-        {/* Quick Stats Row */}
         <View style={styles.statsContainer}>
           <View style={styles.statBadge}>
             <Feather name="calendar" size={16} color={colors.primary} />
@@ -152,20 +157,17 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
           </View>
         </View>
 
-        {/* Instructions */}
         <Text style={styles.sectionTitle}>Instructions</Text>
         <View style={styles.instructionsBox}>
           <Text style={styles.instructionsText}>{assignment.instructions}</Text>
         </View>
 
-        {/* Status Card */}
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
             <Text style={styles.statusTitle}>Submission Status</Text>
             <AssignmentStatusBadge status={assignment.submissionStatus} />
           </View>
 
-          {/* FIX: Strict Ternary for submittedAt */}
           {assignment.submittedAt ? (
             <View style={styles.statusRow}>
               <Feather name="check-circle" size={16} color={colors.success} />
@@ -175,7 +177,6 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
             </View>
           ) : null}
 
-          {/* FIX: Strict Ternary for marksObtained */}
           {assignment.marksObtained !== null ? (
             <View style={styles.statusRow}>
               <Feather name="star" size={16} color={colors.warning} />
@@ -185,7 +186,6 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
             </View>
           ) : null}
 
-          {/* FIX: Strict Ternary for feedback */}
           {assignment.feedback ? (
             <View style={styles.feedbackBox}>
               <Text style={styles.feedbackLabel}>Instructor Feedback:</Text>
@@ -194,11 +194,10 @@ const AssignmentDetailScreen = ({ route, navigation }: Props) => {
           ) : null}
         </View>
 
-        {/* Actions */}
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={handleDownload}
-          disabled={isDownloading}
+          disabled={isDownloading || !assignment.assignmentUrl}
         >
           {isDownloading ? (
             <ActivityIndicator size="small" color={colors.primary} />

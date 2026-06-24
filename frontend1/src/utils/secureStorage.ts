@@ -1,10 +1,11 @@
 import * as SecureStore from "expo-secure-store";
+import { User } from "../types/auth"; 
 
 const ACCESS_TOKEN_KEY = "cn_master_access_token";
 const REFRESH_TOKEN_KEY = "cn_master_refresh_token";
 const USER_KEY = "cn-master-user";
 
-export const saveTokens = async (accessToken: string, refreshToken: string, user?: any) => {
+export const saveTokens = async (accessToken: string, refreshToken: string, user?: User) => {
   await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
   await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
   
@@ -20,9 +21,10 @@ export const getTokens = async () => {
   return { accessToken, refreshToken };
 };
 
-export const getUser = async () => {
+// CRITICAL FIX: Cast the parsed JSON as the full User type
+export const getUser = async (): Promise<User | null> => {
   const user = await SecureStore.getItemAsync(USER_KEY);
-  return user ? JSON.parse(user) : null;
+  return user ? (JSON.parse(user) as User) : null;
 };
 
 export const clearTokens = async () => {

@@ -6,7 +6,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import AuthLayout from "../../components/common/AuthLayout";
 import CustomInput from "../../components/common/CustomInput";
-import PasswordStrengthIndicator from "../../components/common/PasswordStrenghtIndicator";
+// CRITICAL FIX: Make sure you rename this file in your IDE to fix the "Strenght" typo!
+import PasswordStrengthIndicator from "../../components/common/PasswordStrenghtIndicator"; 
 
 import { resetPasswordSchema, ResetPasswordFormData } from "../../utils/resetPasswordSchema";
 import { resetPassword } from "../../services/authService";
@@ -45,8 +46,18 @@ const ResetPasswordScreen = ({ navigation, route }: Props) => {
         name="password"
         render={({ field }) => (
           <>
-            <CustomInput label="New Password" placeholder="Enter password" value={field.value} onChangeText={field.onChange} isPassword error={errors.password?.message} />
-            <PasswordStrengthIndicator password={field.value} />
+            <CustomInput 
+              label="New Password" 
+              placeholder="Enter password" 
+              value={field.value} 
+              onChangeText={field.onChange} 
+              isPassword 
+              error={errors.password?.message} 
+            />
+            {/* UX FIX: Aligned with RegisterScreen to hide when empty */}
+            {field.value.length > 0 && (
+              <PasswordStrengthIndicator password={field.value} />
+            )}
           </>
         )}
       />
@@ -55,7 +66,14 @@ const ResetPasswordScreen = ({ navigation, route }: Props) => {
         control={control}
         name="confirmPassword"
         render={({ field }) => (
-          <CustomInput label="Confirm Password" placeholder="Confirm password" value={field.value} onChangeText={field.onChange} isPassword error={errors.confirmPassword?.message} />
+          <CustomInput 
+            label="Confirm Password" 
+            placeholder="Confirm password" 
+            value={field.value} 
+            onChangeText={field.onChange} 
+            isPassword 
+            error={errors.confirmPassword?.message} 
+          />
         )}
       />
     </AuthLayout>

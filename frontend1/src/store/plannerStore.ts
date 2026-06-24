@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { CreatePlannerTaskPayload, PlannerTask, UpdatePlannerTaskPayload } from "../types/planner"
-import { createPlannerTask, detelePlannerTask, getPlannerCalendarDates, getPlannerTasks, togglePlannerTask, updatePlannerTask } from "../services/plannerService";
+import { createPlannerTask, deletePlannerTask, getPlannerCalendarDates, getPlannerTasks, togglePlannerTask, updatePlannerTask } from "../services/plannerService";
 import { useDashboardStore } from "./dashboardStore";
 
 type PlannerState = {
@@ -87,7 +87,7 @@ export const usePlannerStore = create<PlannerState>(
         },
 
         deleteTask: async(taskId) => {
-            await detelePlannerTask(taskId);
+            await deletePlannerTask(taskId);
             await get().refreshTasksAndCalendarDates(); 
         },
 

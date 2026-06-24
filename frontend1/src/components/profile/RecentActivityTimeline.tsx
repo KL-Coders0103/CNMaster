@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native"; // CRITICAL: Import ScrollView
 import { Feather } from "@expo/vector-icons";
 
 import { useActivityStore } from "../../store/activityStore";
@@ -15,7 +15,23 @@ const RecentActivityTimeline = () => {
     fetchActivities();
   }, [fetchActivities]);
 
-  if (!activities || activities.length === 0) return null;
+  if (!activities || activities.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerIcon}>
+            <Feather name="activity" size={18} color={colors.textPrimary} />
+          </View>
+          <Text style={styles.title}>Recent Activity</Text>
+        </View>
+        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+          <Feather name="wind" size={32} color={colors.textSecondary} style={{ marginBottom: 12, opacity: 0.5 }} />
+          <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 15 }}>It's quiet here...</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4 }}>Read notes or complete quizzes to see your activity.</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -26,31 +42,34 @@ const RecentActivityTimeline = () => {
         <Text style={styles.title}>Recent Activity</Text>
       </View>
 
-      <View style={styles.timelineContainer}>
+      {/* CRITICAL FIX: Changed View to ScrollView, added nestedScrollEnabled */}
+      <ScrollView 
+        style={styles.timelineContainer}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true} 
+      >
         {activities.map((activity, index) => (
           <View key={activity.id} style={styles.item}>
-            
-            {/* Timeline Line & Dot */}
+
             <View style={styles.timelineGraphic}>
               <View style={styles.dot} />
               {index !== activities.length - 1 && <View style={styles.line} />}
             </View>
 
-            {/* Content */}
             <View style={styles.content}>
-              <Text style={styles.action}>{activity.action}</Text>
+              <Text style={styles.action}>{activity.action}</Text> 
               <Text style={styles.date}>
-                {new Date(activity.createdAt).toLocaleString(undefined, {
+                {activity.createdAt ? new Date(activity.createdAt).toLocaleString(undefined, {
                   month: "short",
                   day: "numeric",
                   hour: "numeric",
                   minute: "2-digit",
-                })}
+                }) : "Just now"}
               </Text>
             </View>
           </View>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -91,6 +110,7 @@ const createStyles = (colors: ThemePalette) =>
     },
     timelineContainer: {
       paddingLeft: 4,
+      maxHeight: 300, // CRITICAL FIX: Restrict height so it actually scrolls instead of expanding the card forever
     },
     item: {
       flexDirection: "row",
@@ -115,7 +135,7 @@ const createStyles = (colors: ThemePalette) =>
     },
     content: {
       flex: 1,
-      paddingBottom: 24, // Space between items
+      paddingBottom: 24, 
     },
     action: {
       color: colors.textPrimary,

@@ -75,9 +75,12 @@ const DailyChallengeCard = () => {
           activeOpacity={0.8}
           style={styles.button}
           onPress={() =>
-            navigation.navigate("Quiz", {
-              attemptId: "daily-challenge",
-              questions: dailyChallenge.questions,
+            navigation.navigate("QuizHome", {
+              screen: "Quiz",
+              params: {
+                attemptId: "daily-challenge",
+                questions: dailyChallenge.questions,
+              }
             })
           }
         >

@@ -135,7 +135,7 @@ const EditProfileScreen = () => {
               render={({ field }) => (
                 <CustomDropdown
                   label="Year"
-                  value={field.value}
+                  value={field.value ?? ""}
                   options={YEARS}
                   onSelect={field.onChange}
                 />
@@ -150,14 +150,15 @@ const EditProfileScreen = () => {
               render={({ field }) => (
                 <CustomDropdown
                   label="Branch"
-                  value={field.value}
+                  value={field.value ?? ""}
                   options={BRANCHES}
                   onSelect={(value) => {
                     field.onChange(value);
                     // Reset section to first valid option when branch changes
                     setValue(
                       "section",
-                      SECTIONS_MAP[value as keyof typeof SECTIONS_MAP][0]
+                      SECTIONS_MAP[value as keyof typeof SECTIONS_MAP][0],
+                      {shouldValidate: true}
                     );
                   }}
                 />
@@ -172,7 +173,7 @@ const EditProfileScreen = () => {
               render={({ field }) => (
                 <CustomDropdown
                   label="Section"
-                  value={field.value}
+                  value={field.value ?? ""}
                   options={SECTIONS_MAP[branch as keyof typeof SECTIONS_MAP] ?? ["A"]}
                   onSelect={field.onChange}
                 />

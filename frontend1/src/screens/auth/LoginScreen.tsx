@@ -17,7 +17,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 const LoginScreen = ({ navigation }: Props) => {
   const setAuth = useAuthStore((state) => state.setAuth);
-
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
@@ -37,33 +36,30 @@ const LoginScreen = ({ navigation }: Props) => {
   };
 
   const handleGoogleSignIn = async () => {
-  try {
-    setIsGoogleLoading(true);
+    try {
+      setIsGoogleLoading(true);
 
-    const user = await signInWithGoogle();
+      const user = await signInWithGoogle();
 
-    if (!user) {
+      if (!user) {
+        return; // CRITICAL FIX: Removed redundant state update. 'finally' handles it!
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Google Login Successful",
+      });
+
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Google Login Failed",
+        text2: error?.message ?? "Something went wrong",
+      });
+    } finally {
       setIsGoogleLoading(false);
-      return;
     }
-
-    Toast.show({
-      type: "success",
-      text1: "Google Login Successful",
-    });
-
-  } catch (error: any) {
-
-    Toast.show({
-      type: "error",
-      text1: "Google Login Failed",
-      text2: error?.message ?? "Something went wrong",
-    });
-
-  } finally {
-    setIsGoogleLoading(false);
-  }
-};
+  };
 
   return (
     <AuthLayout
@@ -85,7 +81,15 @@ const LoginScreen = ({ navigation }: Props) => {
         control={control}
         name="identifier"
         render={({ field }) => (
-          <CustomInput label="Email or Mobile" placeholder="Enter email or mobile" value={field.value} onChangeText={field.onChange} autoCapitalize="none" error={errors.identifier?.message} />
+          <CustomInput 
+            label="Email or Mobile" 
+            placeholder="Enter email or mobile" 
+            value={field.value} 
+            onChangeText={field.onChange} 
+            autoCapitalize="none" 
+            autoCorrect={false} // UX Boost
+            error={errors.identifier?.message} 
+          />
         )}
       />
       <Controller

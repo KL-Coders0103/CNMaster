@@ -48,11 +48,15 @@ const SubmissionHistoryScreen = () => {
           </View>
         </View>
 
-        {item.assignment?.chapter?.subject?.name ? (
+        {item.assignment?.chapter?.title ? (
           <Text style={styles.subjectText}>
-            {item.assignment.chapter.subject.name}
+            {item.assignment.chapter.title}
           </Text>
-        ) : null}
+        ) : (
+          <Text style={styles.subjectText}>
+            Computer Networks
+          </Text>
+        )}
 
         {item.submittedAt ? (
           <View style={styles.detailRow}>

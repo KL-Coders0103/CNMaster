@@ -25,7 +25,7 @@ const CompleteProfileScreen = () => {
 
   const isGoogleUser = user?.provider === "google";
 
-  const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<CompleteProfileFormData>({
+  const { control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<CompleteProfileFormData>({
     resolver: zodResolver(completeProfileSchema),
     defaultValues: {
       mobileNumber: user?.mobileNumber ?? "",
@@ -37,6 +37,9 @@ const CompleteProfileScreen = () => {
     },
   });
 
+  // CRITICAL FIX: Use watch() to subscribe to branch changes reactively
+  const watchedBranch = watch("branch");
+
   const onSubmit = async (data: CompleteProfileFormData) => {
     try {
       const payload = {
@@ -45,9 +48,10 @@ const CompleteProfileScreen = () => {
         year: data.year, branch: data.branch, section: data.section,
       };
       const response = await completeProfile(payload);
-      console.log(response.data.user);
+      
       await saveTokens(accessToken!, refreshToken!, response.data.user);
       setAuth(accessToken!, refreshToken!, response.data.user);
+      
       Toast.show({ type: "success", text1: "Profile Completed" });
     } catch (error: any) {
       Toast.show({ type: "error", text1: "Failed", text2: error?.response?.data?.message ?? "Something went wrong" });
@@ -64,9 +68,27 @@ const CompleteProfileScreen = () => {
     >
       {isGoogleUser && (
         <>
-          <Controller control={control} name="mobileNumber" render={({ field }) => <CustomInput label="Mobile Number" placeholder="Enter mobile number" prefix="+91" value={field.value} onChangeText={field.onChange} keyboardType="number-pad" error={errors.mobileNumber?.message} />} />
-          <Controller control={control} name="password" render={({ field }) => <CustomInput label="Password" placeholder="Create password" value={field.value} onChangeText={field.onChange} isPassword error={errors.password?.message} />} />
-          <Controller control={control} name="confirmPassword" render={({ field }) => <CustomInput label="Confirm Password" placeholder="Confirm password" value={field.value} onChangeText={field.onChange} isPassword error={errors.confirmPassword?.message} />} />
+          <Controller 
+            control={control} 
+            name="mobileNumber" 
+            render={({ field }) => (
+              <CustomInput label="Mobile Number" placeholder="Enter mobile number" prefix="+91" value={field.value} onChangeText={field.onChange} keyboardType="number-pad" error={errors.mobileNumber?.message} />
+            )} 
+          />
+          <Controller 
+            control={control} 
+            name="password" 
+            render={({ field }) => (
+              <CustomInput label="Password" placeholder="Create password" value={field.value} onChangeText={field.onChange} isPassword error={errors.password?.message} />
+            )} 
+          />
+          <Controller 
+            control={control} 
+            name="confirmPassword" 
+            render={({ field }) => (
+              <CustomInput label="Confirm Password" placeholder="Confirm password" value={field.value} onChangeText={field.onChange} isPassword error={errors.confirmPassword?.message} />
+            )} 
+          />
         </>
       )}
 
@@ -96,7 +118,8 @@ const CompleteProfileScreen = () => {
             options={BRANCHES}
             onSelect={(val) => {
               field.onChange(val);
-              setValue("section", SECTIONS_MAP[val][0]); 
+              // CRITICAL FIX: Added shouldValidate so it clears errors if the user previously tried to submit an invalid section
+              setValue("section", SECTIONS_MAP[val][0], { shouldValidate: true }); 
             }}
             error={errors.branch?.message}
           />
@@ -107,7 +130,7 @@ const CompleteProfileScreen = () => {
         control={control}
         name="section"
         render={({ field }) => {
-          const currentBranch = control._formValues.branch || BRANCHES[0];
+          const currentBranch = watchedBranch || BRANCHES[0];
           const availableSections = SECTIONS_MAP[currentBranch] || ["A"];
           
           return (

@@ -17,9 +17,10 @@ const LearningAnalyticsCard = () => {
 
   if (!analytics) return null;
 
+  // CRITICAL FIX: Changed from Subject to Topic to match the single-subject backend reality
   const items = [
-    { label: "Strong Subject", value: analytics.strongestSubject, icon: "trending-up", color: colors.success },
-    { label: "Weak Subject", value: analytics.weakestSubject, icon: "trending-down", color: colors.error },
+    { label: "Strongest Chapter", value: analytics.strongestChapter || "N/A", icon: "trending-up", color: colors.success },
+    { label: "Weakest Weakest", value: analytics.weakestChapter || "N/A", icon: "trending-down", color: colors.error },
     { label: "Notes Completion", value: `${analytics.notesCompletion}%`, icon: "book-open", color: colors.primary },
     { label: "Quiz Average", value: `${analytics.averageQuizScore}%`, icon: "check-circle", color: colors.warning },
     { label: "Learning Streak", value: `${analytics.learningStreak} Days`, icon: "zap", color: "#F59E0B" },
@@ -44,13 +45,17 @@ const LearningAnalyticsCard = () => {
               <Feather name={item.icon as any} size={16} color={colors.textSecondary} style={styles.rowIcon} />
               <Text style={styles.label}>{item.label}</Text>
             </View>
-            <Text style={[styles.value, { color: item.color }]}>{item.value}</Text>
+            <Text style={[styles.value, { color: item.color }]} numberOfLines={1} ellipsizeMode="tail">
+              {item.value}
+            </Text>
           </View>
         ))}
       </View>
     </View>
   );
 };
+
+// ... keep your createStyles exactly as it is!
 
 const createStyles = (colors: ThemePalette) =>
   StyleSheet.create({

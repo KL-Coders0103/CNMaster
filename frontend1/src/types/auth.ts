@@ -1,17 +1,20 @@
+export type UserRole = "student" | "teacher" | "admin";
+
+// 2. Update the base User type
 export type User = {
   id: string;
   fullName: string;
   email: string;
   mobileNumber?: string | null;
-  role: string;
+  role: UserRole;
   provider: "email" | "google" | "email_google";
   googleId?: string | null;
   year?: string | null;
   branch?: string | null;
   section?: string | null;
   isProfileCompleted: boolean;
+  isSuspended: boolean;
 };
-
 export interface RegisterRequest {
   fullName: string;
   email: string;

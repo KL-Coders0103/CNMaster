@@ -63,15 +63,15 @@ export const getLearningAnalytics = async (userId: string) => {
     })
   ]);
 
-  const weakestSubject = weakestArea?.chapter.title || "No data yet";
+  const weakestChapter = weakestArea?.chapter?.title || "No data yet";
 
   const strongestArea = await prisma.quizAttempt.findFirst({
     where: { userId, status: "COMPLETED" },
     orderBy: { score: 'desc' },
     include: { quizAnswers: { include: { question: { include: { chapter: true } } } } }
   });
-  
-  const strongestSubject = strongestArea?.quizAnswers[0]?.question.chapter.title || "Keep practicing!";
+
+  const strongestChapter = strongestArea?.quizAnswers[0]?.question?.chapter?.title || "Keep practicing!";
 
   const completedNotes = readingProgress.filter(
     (progress) => progress.totalPages > 0 && (progress.currentPage / progress.totalPages) >= 0.9
@@ -83,8 +83,8 @@ export const getLearningAnalytics = async (userId: string) => {
   return {
     success: true,
     data: {
-      strongestSubject,
-      weakestSubject,
+      strongestChapter, 
+      weakestChapter,  
       notesCompletion,
       averageQuizScore,
       learningStreak: userStats?.streakDays ?? 0,

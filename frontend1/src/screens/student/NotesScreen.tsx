@@ -24,29 +24,23 @@ const NotesScreen = () => {
   const styles = getNotesScreenStyles(colors);
 
   const {
-    subjects,
     chapters,
     notes,
     search,
     isLoading,
-    selectedSubject,
     selectedChapter,
-    fetchSubjects,
     fetchNotes,
     setSearch,
-    setSelectedSubject,
     setSelectedChapter,
   } = useNotesStore();
 
   useEffect(() => {
-    fetchSubjects();
     fetchNotes();
   }, []);
 
   const onRefresh = useCallback(async () => {
-    await fetchSubjects();
     await fetchNotes();
-  }, [fetchSubjects, fetchNotes]);
+  }, [fetchNotes]);
 
   const renderNoteItem = useCallback(
     ({ item }: { item: any }) => (
@@ -106,28 +100,7 @@ const NotesScreen = () => {
                 onChangeText={setSearch}
               />
             </View>
-
-            {/* Strict Ternary for Subjects */}
-            {(subjects && subjects.length > 1) ? (
-              <View style={styles.filterSection}>
-                <Text style={styles.sectionTitle}>Subjects</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.chipScrollContent}
-                >
-                  {subjects.map((subject) => (
-                    <Chip
-                      key={subject.id}
-                      title={subject.name}
-                      selected={selectedSubject === subject.id}
-                      onPress={() => setSelectedSubject(subject.id)}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            ) : null}
-
+            
             {/* Strict Ternary for Chapters */}
             {(chapters && chapters.length > 0) ? (
               <View style={styles.filterSection}>

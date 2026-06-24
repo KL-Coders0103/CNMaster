@@ -24,6 +24,9 @@ import DailyChallengeCard from "../../components/home/DailychallengeCard";
 
 const StudentHomeScreen = () => {
   const [achievementVisible, setAchievementVisible] = useState(false);
+  // CRITICAL FIX: Track the dismissed ID locally to prevent the re-render loop
+  const [dismissedAchievementId, setDismissedAchievementId] = useState<string | null>(null);
+  
   const [refreshing, setRefreshing] = useState(false);
 
   const { dashboard, isLoading, fetchDashboard, markAchievementViewed } = useDashboardStore();
@@ -33,11 +36,7 @@ const StudentHomeScreen = () => {
 
   const achievement = dashboard?.achievement;
 
-  const fetchRecentNotes =
-  useNotesStore(
-    state => state.fetchRecentNotes
-  );
-
+  const fetchRecentNotes = useNotesStore(state => state.fetchRecentNotes);
   const { fetchUpcomingAssignment} = useAssignmentStore();
 
   useEffect(() => {
@@ -48,10 +47,11 @@ const StudentHomeScreen = () => {
   }, [fetchDashboard, fetchRecentNotes, fetchUpcomingAssignment, fetchWeakAreas]);
 
   useEffect(() => {
-    if (dashboard?.achievement && !achievementVisible) {
+    // CRITICAL FIX: Only show if it hasn't been locally dismissed
+    if (achievement && achievement.id !== dismissedAchievementId && !achievementVisible) {
       setAchievementVisible(true);
     }
-  }, [dashboard?.achievement, achievementVisible]);
+  }, [achievement, achievementVisible, dismissedAchievementId]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -66,7 +66,7 @@ const StudentHomeScreen = () => {
     } finally {
       setRefreshing(false); 
     }
-  }, [fetchDashboard]);
+  }, [fetchDashboard, fetchRecentNotes, fetchWeakAreas]);
 
   if (isLoading && !refreshing) {
     return (
@@ -107,8 +107,9 @@ const StudentHomeScreen = () => {
           description={achievement?.description ?? ""}
           xp={achievement?.xp ?? 0}
           onClose={async () => {
-            setAchievementVisible(false);
-            if(achievement?.id) {
+            if (achievement?.id) {
+              setDismissedAchievementId(achievement.id); // Mark dismissed immediately
+              setAchievementVisible(false);
               await markAchievementViewed(achievement.id);
             }
           }}

@@ -7,17 +7,22 @@ export const initializeAuth = async () => {
 
   try {
     const tokens = await getTokens();
-    const user = await getUser();
-    if (!tokens.refreshToken || !user) {
+    const localUser = await getUser();
+
+    if (!tokens.refreshToken || !localUser) {
       clearAuth();
       return;
     }
+    
     const response = await refreshAccessToken({
       refreshToken: tokens.refreshToken,
     });
 
-    await saveTokens(response.data.accessToken, tokens.refreshToken, user);
-    setAuth(response.data.accessToken, tokens.refreshToken, user);
+    const newAccessToken = response.data.accessToken;
+    const freshUser = response.data.user || localUser;
+
+    await saveTokens(newAccessToken, tokens.refreshToken, freshUser);
+    setAuth(newAccessToken, tokens.refreshToken, freshUser);
 
   } catch {
     await clearTokens();

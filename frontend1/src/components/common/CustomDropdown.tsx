@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Pressable } from "react-native"; // CRITICAL FIX: Imported Pressable
 import { Feather } from "@expo/vector-icons";
 import { useThemeStore } from "../../store/themeStore";
 import { ThemePalette } from "../../theme/colors";
@@ -41,7 +41,8 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
           onPress={() => setIsVisible(false)} 
           activeOpacity={1}
         >
-          <View style={styles.dropdownMenu}>
+          {/* CRITICAL FIX: Wrapped the menu in a Pressable to stop touches from bubbling up to the overlay */}
+          <Pressable style={styles.dropdownMenu}>
             <View style={styles.menuHeader}>
               <Text style={styles.menuTitle}>Select {label}</Text>
               <TouchableOpacity onPress={() => setIsVisible(false)}>
@@ -68,12 +69,13 @@ const CustomDropdown = ({ label, value, options, onSelect, placeholder, error }:
                 </TouchableOpacity>
               )}
             />
-          </View>
+          </Pressable>
         </TouchableOpacity>
       </Modal>
     </View>
   );
 };
+
 
 const createThemedStyles = (colors: ThemePalette) => StyleSheet.create({
   container: {

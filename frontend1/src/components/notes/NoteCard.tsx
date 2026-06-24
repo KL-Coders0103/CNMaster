@@ -34,12 +34,17 @@ const NoteCard = ({ note, onPress }: Props) => {
       </View>
 
       <View style={styles.tagsRow}>
+        {/* CRITICAL FIX: Hardcoded the subject since there is no Subject model */}
         <View style={styles.tag}>
-          <Text style={styles.tagText}>{note.subject}</Text>
+          <Text style={styles.tagText}>Computer Networks</Text>
         </View>
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{note.chapter}</Text>
-        </View>
+        
+        {/* FIX: Only render the chapter tag if the data actually exists */}
+        {!!note.chapter && (
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>{note.chapter}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>

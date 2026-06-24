@@ -7,20 +7,14 @@ import {
 import { api } from "../api/axios";
 
 interface WeakArea {
-
   id: string;
-
   mistakeCount: number;
-
   chapter: {
     id: string;
     title: string;
-
-    subject: {
-      name: string;
-    };
   };
 }
+
 interface WeeklyAnalytics {
   studyHours: number;
   xpEarned: number;

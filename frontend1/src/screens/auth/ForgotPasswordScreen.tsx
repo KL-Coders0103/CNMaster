@@ -20,9 +20,14 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      const response = await forgotPassword({ email: data.email.trim().toLowerCase() });
+      // CRITICAL FIX: Sanitize once and use it for both the API and the next screen
+      const sanitizedEmail = data.email.trim().toLowerCase();
+      
+      const response = await forgotPassword({ email: sanitizedEmail });
       Toast.show({ type: "success", text1: "OTP Sent", text2: response.message });
-      navigation.navigate("VerifyForgotOtp", { email: data.email });
+      
+      // Pass the clean email to the verification screen
+      navigation.navigate("VerifyForgotOtp", { email: sanitizedEmail });
     } catch (error: any) {
       Toast.show({ type: "error", text1: "Failed", text2: error?.response?.data?.message ?? "Something went wrong" });
     }
@@ -43,7 +48,16 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
         control={control}
         name="email"
         render={({ field }) => (
-          <CustomInput label="Email" placeholder="Enter your email" value={field.value} onChangeText={field.onChange} autoCapitalize="none" keyboardType="email-address" error={errors.email?.message} />
+          <CustomInput 
+            label="Email" 
+            placeholder="Enter your email" 
+            value={field.value} 
+            onChangeText={field.onChange} 
+            autoCapitalize="none" 
+            autoCorrect={false} // UX Boost
+            keyboardType="email-address" 
+            error={errors.email?.message} 
+          />
         )}
       />
     </AuthLayout>

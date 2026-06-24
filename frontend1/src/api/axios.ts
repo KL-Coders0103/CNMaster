@@ -6,10 +6,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000,
+  timeout: 60000, 
 });
 
 let isRefreshing = false;
@@ -17,29 +14,41 @@ let failedQueue: { resolve: (value?: unknown) => void; reject: (reason?: any) =>
 
 const processQueue = (error: any, token: string | null) => {
   failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else {
-      promise.resolve(token);
-    }
+    if (error) promise.reject(error);
+    else promise.resolve(token);
   });
   failedQueue = [];
 };
 
-// Request Interceptor: Attach Token
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const { accessToken } = await getTokens();
+  
   if (accessToken && config.headers) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
+
+  if (config.data instanceof FormData) {
+    config.headers["Content-Type"] = "multipart/form-data";
+  } else {
+    config.headers["Content-Type"] = "application/json";
+  }
+
   return config;
 });
 
-// Response Interceptor: Handle 401s and Token Refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
+
+    if (error.response?.status === 403) {
+      const errorData = error.response.data as any;
+      if (errorData?.message?.toLowerCase().includes("suspend")) {
+        await clearTokens();
+        useAuthStore.getState().clearAuth();
+        return Promise.reject(new Error("Your account has been suspended by an Admin."));
+      }
+    }
 
     if (error.response?.status !== 401 || originalRequest?._retry) {
       return Promise.reject(error);
@@ -49,10 +58,7 @@ api.interceptors.response.use(
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       }).then((token) => {
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${token}`,
-        };
+        originalRequest.headers.Authorization = `Bearer ${token}`;
         return api(originalRequest);
       });
     }
@@ -63,15 +69,9 @@ api.interceptors.response.use(
     try {
       const { refreshToken } = await getTokens();
 
-      if (!refreshToken) {
-        throw new Error("No refresh token");
-      }
+      if (!refreshToken) throw new Error("No refresh token");
 
-      // Use raw axios to avoid interceptor loops
-      const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {
-        refreshToken,
-      });
-
+      const response = await axios.post(`${BASE_URL}/auth/refresh-token`, { refreshToken });
       const newAccessToken = response.data.data.accessToken;
       const storedUser = await getUser();
 
@@ -83,11 +83,7 @@ api.interceptors.response.use(
 
       processQueue(null, newAccessToken);
 
-      originalRequest.headers = {
-        ...originalRequest.headers,
-        Authorization: `Bearer ${newAccessToken}`,
-      };
-
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);

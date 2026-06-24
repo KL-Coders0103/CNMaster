@@ -34,7 +34,7 @@ const PlannerScreen = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTask, setSelectedTask] = useState<PlannerTask | null>(null);
-  const [isEditTaskModalVisible, setIsEditTaskModalvisible] = useState(false);
+  const [isEditTaskModalVisible, setIsEditTaskModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
@@ -84,7 +84,7 @@ const PlannerScreen = () => {
               title="Pending"
               tasks={pendingTasks}
               onToggle={toggleTask}
-              onEdit={(task) => { setSelectedTask(task); setIsEditTaskModalvisible(true); }}
+              onEdit={(task) => { setSelectedTask(task); setIsEditTaskModalVisible(true); }}
               onDelete={(taskId) => { setTaskToDelete(taskId); setIsDeleteModalVisible(true); }}
             />
 
@@ -92,7 +92,7 @@ const PlannerScreen = () => {
               title="Completed"
               tasks={completedTasks}
               onToggle={toggleTask}
-              onEdit={(task) => { setSelectedTask(task); setIsEditTaskModalvisible(true); }}
+              onEdit={(task) => { setSelectedTask(task); setIsEditTaskModalVisible(true); }}
               onDelete={(taskId) => { setTaskToDelete(taskId); setIsDeleteModalVisible(true); }}
             />
           </View>
@@ -107,7 +107,7 @@ const PlannerScreen = () => {
       <EditTaskModal 
         visible={isEditTaskModalVisible} 
         task={selectedTask} 
-        onClose={() => { setSelectedTask(null); setIsEditTaskModalvisible(false); }}
+        onClose={() => { setSelectedTask(null); setIsEditTaskModalVisible(false); }}
       />
       <DeleteTaskModal 
         visible={isDeleteModalVisible} 

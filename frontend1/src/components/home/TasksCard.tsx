@@ -46,14 +46,14 @@ const TasksCard = () => {
               activeOpacity={0.7}
               onPress={() => navigation.navigate("Planner", { selectedTaskId: task.id })}
             >
-              <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
-                {task.completed && <Feather name="check" size={14} color={colors.white} />}
+              <View style={[styles.checkbox, task.isCompleted && styles.checkboxCompleted]}>
+                {task.isCompleted && <Feather name="check" size={14} color={colors.white} />}
               </View>
 
               <Text
                 style={[
                   styles.taskText,
-                  task.completed && styles.taskTextCompleted,
+                  task.isCompleted && styles.taskTextCompleted,
                 ]}
                 numberOfLines={2}
               >

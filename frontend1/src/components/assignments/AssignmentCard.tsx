@@ -36,7 +36,7 @@ const AssignmentCard = ({ assignment, onPress }: Props) => {
       <View style={styles.header}>
         <View style={styles.iconContainer}>
           <Feather
-            name="file-text" // Swapped clipboard for file-text (often looks sleeker)
+            name="file-text"
             size={20}
             color={colors.primary}
           />
@@ -46,12 +46,13 @@ const AssignmentCard = ({ assignment, onPress }: Props) => {
           <Text numberOfLines={1} style={styles.title}>
             {assignment.title}
           </Text>
+          
+          {/* CRITICAL FIX: Removed the non-existent 'subject' model lookup */}
           <Text numberOfLines={1} style={styles.subject}>
-            {assignment.chapter?.subject?.name || "Subject Name"}
+            {assignment.chapter?.title || "Computer Networks"}
           </Text>
         </View>
 
-        {/* Badge moved to top right for a cleaner dashboard look */}
         <View style={styles.badgeContainer}>
           <AssignmentStatusBadge status={assignment.submissionStatus ?? "PENDING"} />
         </View>
@@ -95,19 +96,19 @@ const createStyles = (colors: ThemePalette) =>
       borderColor: colors.border,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04, // Ultra-subtle, premium shadow
+      shadowOpacity: 0.04, 
       shadowRadius: 12,
       elevation: 2,
     },
     header: {
       flexDirection: "row",
-      alignItems: "center", // Center aligns icon, text, and badge horizontally
+      alignItems: "center", 
       marginBottom: 12,
     },
     iconContainer: {
       width: 44,
       height: 44,
-      borderRadius: 14, // Squircle look
+      borderRadius: 14, 
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: colors.primaryLight || "rgba(37,99,235,0.08)",
@@ -116,14 +117,14 @@ const createStyles = (colors: ThemePalette) =>
     titleContainer: {
       flex: 1,
       justifyContent: "center",
-      marginRight: 8, // Prevent text from touching the badge
+      marginRight: 8, 
     },
     title: {
       fontSize: 16,
       fontWeight: "700",
       color: colors.textPrimary,
       marginBottom: 2,
-      letterSpacing: -0.3, // Modern font rendering
+      letterSpacing: -0.3, 
     },
     subject: {
       fontSize: 13,
@@ -131,7 +132,7 @@ const createStyles = (colors: ThemePalette) =>
       fontWeight: "500",
     },
     badgeContainer: {
-      flexShrink: 0, // Prevents the badge from being squished by long titles
+      flexShrink: 0, 
     },
     description: {
       color: colors.textSecondary,
@@ -142,9 +143,9 @@ const createStyles = (colors: ThemePalette) =>
     footer: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8, // Clean spacing between chips
+      gap: 8, 
       paddingTop: 16,
-      borderTopWidth: StyleSheet.hairlineWidth, // Thinner, sharper border line
+      borderTopWidth: StyleSheet.hairlineWidth, 
       borderTopColor: colors.border,
     },
     footerChip: {
@@ -153,7 +154,7 @@ const createStyles = (colors: ThemePalette) =>
       paddingHorizontal: 10,
       paddingVertical: 6,
       borderRadius: 8,
-      gap: 6, // Space between icon and text inside chip
+      gap: 6, 
     },
     footerChipText: {
       fontWeight: "600",

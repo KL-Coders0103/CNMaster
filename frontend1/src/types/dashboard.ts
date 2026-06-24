@@ -1,3 +1,5 @@
+export type AssessmentType = "Quiz" | "Assignment";
+
 export interface DashboardResponse {
   success: boolean;
   message: string;
@@ -26,7 +28,7 @@ export interface DashboardResponse {
     tasks: {
       id: string;
       title: string;
-      completed: boolean;
+      isCompleted: boolean;
     }[];
 
     weakAreas: string[]; 
@@ -48,7 +50,7 @@ export interface DashboardResponse {
     upcomingAssessment: {
       id: string;
       title: string;
-      type: "Quiz" | "Exam" | "Assignment";
+      type: AssessmentType;
       dueDate: string; 
     } | null;
 
@@ -60,6 +62,6 @@ export interface DashboardResponse {
     motivation: {
       text: string;
       author: string;
-    }
+    };
   };
 }

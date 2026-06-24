@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { getRecentActivities } from "../services/analyticsService";
 
-
-
 interface Activity {
   id: string;
   action: string;
@@ -10,53 +8,29 @@ interface Activity {
 }
 
 interface ActivityStore {
-
   activities: Activity[];
-
   isLoading: boolean;
-
-  fetchActivities:
-    () => Promise<void>;
+  fetchActivities: () => Promise<void>;
 }
 
-export const useActivityStore =
-  create<ActivityStore>(
-    set => ({
+export const useActivityStore = create<ActivityStore>((set) => ({
+  activities: [],
+  isLoading: false,
 
-      activities: [],
+  fetchActivities: async () => {
+    try {
+      set({ isLoading: true });
+      
+      const response = await getRecentActivities();
 
-      isLoading: false,
+      set({
+        activities: response.data, 
+      });
 
-      fetchActivities:
-        async () => {
-
-          try {
-
-            set({
-              isLoading: true,
-            });
-
-            const response =
-              await getRecentActivities();
-
-            set({
-              activities:
-                response.data,
-            });
-
-          } catch (error) {
-
-            console.log(
-              "Failed to fetch activities",
-              error
-            );
-
-          } finally {
-
-            set({
-              isLoading: false,
-            });
-          }
-        },
-    })
-  );
+    } catch (error) {
+      console.log("Failed to fetch activities", error);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+}));

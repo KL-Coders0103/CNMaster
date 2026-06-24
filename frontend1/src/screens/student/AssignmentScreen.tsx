@@ -45,14 +45,15 @@ const AssignmentsScreen = () => {
 
   // Bug Fix: Filter handling with fallbacks to avoid map/filter crashes on undefined state
   const filteredAssignments = (assignments || []).filter((assignment) => {
-    const matchesStatus =
-      selectedStatus === "ALL" || assignment.submissionStatus === selectedStatus;
-    
-    const matchesSearch =
-      !search || assignment.title?.toLowerCase().includes(search.toLowerCase());
+  const matchesStatus =
+    selectedStatus === "ALL" || assignment.submissionStatus === selectedStatus;
+  
+  // FIX: Added optional chaining and empty string fallback
+  const matchesSearch =
+    !search || assignment.title?.toLowerCase().includes(search.toLowerCase() ?? "");
 
-    return matchesStatus && matchesSearch;
-  });
+  return matchesStatus && matchesSearch;
+});
 
   // Performance Bug Fix: Extracted renderItem with useCallback to prevent frame drops
   const renderAssignmentItem = useCallback(

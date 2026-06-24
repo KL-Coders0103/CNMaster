@@ -10,7 +10,8 @@ const FloatingActionButton = () => {
   const { colors } = useThemeStore();
   const styles = createStyles(colors);
   const navigation = useNavigation<any>();
-  const setOpenAddTaskModel = usePlannerStore(state => state.setOpenAddTaskModal);
+
+  const setOpenAddTaskModal = usePlannerStore(state => state.setOpenAddTaskModal);
 
   const [mounted, setMounted] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
@@ -43,7 +44,7 @@ const FloatingActionButton = () => {
   const handleAction = (action: string) => {
     closeMenu(() => {
       if (action === "CreateTask") {
-        setOpenAddTaskModel(true);
+        setOpenAddTaskModal(true); 
         navigation.navigate("Planner");
       } else if (action === "CreateNote") {
         navigation.navigate("Notes");

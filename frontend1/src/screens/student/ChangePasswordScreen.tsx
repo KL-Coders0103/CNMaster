@@ -25,6 +25,7 @@ const ChangePasswordScreen = () => {
     reset,
     watch,
     setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<ChangePasswordForm>({
     resolver: zodResolver(changePasswordSchema),
@@ -45,6 +46,13 @@ const ChangePasswordScreen = () => {
     if (/[^A-Za-z0-9]/.test(newPasswordValue)) score++;
     setStrength(score);
   }, [newPasswordValue]);
+
+  useEffect(() => {
+  if (errors.newPassword) {
+    // This clears the custom error when the user modifies the input
+    clearErrors("newPassword");
+  }
+}, [newPasswordValue]);
 
   const onSubmit = async (data: ChangePasswordForm) => {
     // Frontend Validation: Prevent using same password
