@@ -8,25 +8,34 @@ export const toggleBookmark = async (userId: string, questionId: string) => {
   });
 
   if (existing) {
-    await prisma.bookmarkedQuestion.delete({
-      where: { id: existing.id },
-    });
+    try {
+      await prisma.bookmarkedQuestion.delete({
+        where: { userId_questionId: { userId, questionId } },
+      });
+    } catch (error: any) {
+      if (error.code !== 'P2025') throw error; 
+    }
+    
     return { 
       success: true, 
       message: "Bookmark removed", 
       data: { bookmarked: false } 
     };
+  } else {
+    try {
+      await prisma.bookmarkedQuestion.create({
+        data: { userId, questionId },
+      });
+    } catch (error: any) {
+      if (error.code !== 'P2002') throw error;
+    }
+
+    return { 
+      success: true, 
+      message: "Question bookmarked", 
+      data: { bookmarked: true } 
+    };
   }
-
-  await prisma.bookmarkedQuestion.create({
-    data: { userId, questionId },
-  });
-
-  return { 
-    success: true, 
-    message: "Question bookmarked", 
-    data: { bookmarked: true } 
-  };
 };
 
 export const fetchBookmarks = async (userId: string) => {
@@ -40,6 +49,7 @@ export const fetchBookmarks = async (userId: string) => {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 50,
   });
 
   return { 

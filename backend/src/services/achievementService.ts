@@ -1,6 +1,6 @@
 import prisma from "../config/prisma";
 import { ACHIEVEMENT_CODES } from "../constants/achievementConstants";
-import { formatLocalDate } from "../utils/dateUtils";
+import { AppError } from "../utils/AppError";
 import { evaluateMetaAchievements } from "./achievementEvaluator";
 
 import { awardXp } from "./xpService"; 
@@ -13,37 +13,38 @@ type UnlockAchievementParams = {
 export const unlockAchievementIfEligible = async ({ userId, achievementCode }: UnlockAchievementParams) => {
   const achievement = await prisma.achievement.findUnique({
     where: { code: achievementCode },
-    include: {
-      userAchievements: {
-        where: { userId },
+    select: { id: true, xpReward: true }
+  });
+
+  if (!achievement) return null;
+
+  try {
+    const unlockedAchievement = await prisma.userAchievement.create({
+      data: {
+        userId,
+        achievementId: achievement.id,
       },
-    },
-  });
+    });
+    
+    if (achievement.xpReward > 0) {
+      awardXp(
+        userId,
+        achievement.xpReward,
+        "ACHIEVEMENT_UNLOCKED",
+        achievement.id,
+        true 
+      ).catch(console.error);
+    }
 
-  if (!achievement || achievement.userAchievements.length > 0) return null;
+    if(achievementCode !== ACHIEVEMENT_CODES.LEGEND && achievementCode !== ACHIEVEMENT_CODES.UNSTOPPABLE) {
+      evaluateMetaAchievements(userId).catch(console.error);
+    }
 
-  const unlockedAchievement = await prisma.userAchievement.create({
-    data: {
-      userId,
-      achievementId: achievement.id,
-    },
-  });
-
-  if (achievement.xpReward > 0) {
-    await awardXp(
-      userId,
-      achievement.xpReward,
-      "ACHIEVEMENT_UNLOCKED",
-      achievement.id,
-      true 
-    );
+    return unlockedAchievement;
+  } catch (error : any) {
+    if(error.code === 'P2002') return null;
+    throw error;
   }
-
-  if(achievementCode !== ACHIEVEMENT_CODES.LEGEND && achievementCode !== ACHIEVEMENT_CODES.UNSTOPPABLE) {
-    evaluateMetaAchievements(userId).catch(console.error);
-  }
-
-  return unlockedAchievement;
 };
 
 
@@ -116,24 +117,11 @@ export const checkXpAchievements = async (userId: string, totalXp: number) => {
 };
 
 export const checkConsistentPlannerAchievement = async (userId: string) => {
-  // Query Prisma directly for the dates
-  const completedTasks = await prisma.plannerTask.findMany({
-    where: {
-      userId,
-      isCompleted: true,
-      completedAt: { not: null },
-    },
-    select: { completedAt: true },
-    orderBy: { completedAt: "asc" },
+  const activeDaysCount = await prisma.dailyActivity.count({
+    where: { userId }
   });
 
-  const uniqueDays = [
-    ...new Set(
-      completedTasks.map((task) => formatLocalDate(task.completedAt!))
-    ),
-  ];
-
-  if (uniqueDays.length >= 14) {
+  if(activeDaysCount >= 14){
     await unlockConsistentPlannerAchievement(userId);
   }
 };
@@ -156,7 +144,15 @@ export const getLatestUnseenAchievement = async (userId: string) => {
   });
 };
 
-export const markAchievementAsViewed = async (userAchievementId: string) => {
+export const markAchievementAsViewed = async (userAchievementId: string, userId: string) => {
+  const existingRecord = await prisma.userAchievement.findFirst({
+    where: { id: userAchievementId, userId}
+  });
+
+  if(!existingRecord) {
+    throw new AppError('Achievement not found or unauthorized', 404);
+  }
+  
   await prisma.userAchievement.update({
     where: { id: userAchievementId },
     data: { isViewed: true },

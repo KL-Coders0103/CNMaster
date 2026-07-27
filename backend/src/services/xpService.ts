@@ -1,8 +1,6 @@
 import prisma from "../config/prisma";
 import { calculateLevel } from "../utils/xpUtils";
-import { AppError } from "../utils/AppError";
 
-// Ensure these imports point to your correctly unified achievement service
 import { 
   checkXpAchievements, 
   unlockLevel10Achievement, 
@@ -12,6 +10,7 @@ import {
   unlockLevel50Achievement, 
   unlockLevel5Achievement 
 } from "./achievementService";
+import { redisClient } from "../app";
 
 export const awardXp = async (
   userId: string,
@@ -20,46 +19,55 @@ export const awardXp = async (
   referenceId?: string,
   skipAchievementChecks = false
 ) => {
-  const userStats = await prisma.userStats.findUnique({
-    where: { userId },
-  });
-
-  if (!userStats) throw new AppError("User stats not found", 404);
-
-  await prisma.xpTransaction.create({
-    data: { userId, xpEarned, source, referenceId },
-  });
-
-  const updatedXp = userStats.xpCurrent + xpEarned;
-  const { level, currentLevelXp, totalXp, xpRequired } = calculateLevel(updatedXp);
-  const previousLevel = userStats.level;
-
-  await prisma.userStats.update({
-    where: { userId },
-    data: { xpCurrent: updatedXp, level, xpRequired },
-  });
+  if (xpEarned <= 0) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  await prisma.dailyActivity.upsert({
-    where: { userId_date: { userId, date: today } },
-    update: { xpGained: { increment: xpEarned } },
-    create: { userId, date: today, xpGained: xpEarned },
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.xpTransaction.create({
+      data: { userId, xpEarned, source, referenceId },
+    });
+
+    const userStats = await tx.userStats.update({
+      where: { userId },
+      data: { xpCurrent: { increment: xpEarned } },
+    });
+
+    const previousLevel = userStats.level;
+    const { level, currentLevelXp, totalXp, xpRequired } = calculateLevel(userStats.xpCurrent);
+
+    if (level !== previousLevel) {
+      await tx.userStats.update({
+        where: { userId },
+        data: { level, xpRequired },
+      });
+    }
+
+    await tx.dailyActivity.upsert({
+      where: { userId_date: { userId, date: today } },
+      update: { xpGained: { increment: xpEarned } },
+      create: { userId, date: today, xpGained: xpEarned },
+    });
+
+    return { totalXp, currentLevelXp, level, xpRequired, previousLevel };
   });
 
-  await checkXpAchievements(userId, updatedXp);
+  await redisClient.del(`user:${userId}:heatmap`);
 
-  if (!skipAchievementChecks) {
-    if (previousLevel < 2 && level >= 2) await unlockLevel2Achievement(userId);
-    if (previousLevel < 5 && level >= 5) await unlockLevel5Achievement(userId);
-    if (previousLevel < 10 && level >= 10) await unlockLevel10Achievement(userId);
-    if (previousLevel < 20 && level >= 20) await unlockLevel20Achievement(userId);
-    if (previousLevel < 30 && level >= 30) await unlockLevel30Achievement(userId);
-    if (previousLevel < 50 && level >= 50) await unlockLevel50Achievement(userId);
+  checkXpAchievements(userId, result.totalXp).catch(console.error);
+
+  if (!skipAchievementChecks && result.level > result.previousLevel) {
+    const lvl = result.level;
+    if (lvl >= 2 && result.previousLevel < 2) unlockLevel2Achievement(userId).catch(console.error);
+    if (lvl >= 5 && result.previousLevel < 5) unlockLevel5Achievement(userId).catch(console.error);
+    if (lvl >= 10 && result.previousLevel < 10) unlockLevel10Achievement(userId).catch(console.error);
+    if (lvl >= 20 && result.previousLevel < 20) unlockLevel20Achievement(userId).catch(console.error);
+    if (lvl >= 30 && result.previousLevel < 30) unlockLevel30Achievement(userId).catch(console.error);
+    if (lvl >= 50 && result.previousLevel < 50) unlockLevel50Achievement(userId).catch(console.error);
   }
 
-  return { totalXp, currentLevelXp, level, xpRequired };
+  return result;
 };
 
 export const hasXpTransaction = async (userId: string, source: string, referenceId: string) => {

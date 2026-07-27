@@ -27,3 +27,13 @@ Thumbs.db
 google-services.json
 GoogleService-Info.plist
 firebase-service-account.json
+
+# Environment overrides
+.env.production.local
+.env.test.local
+
+# Docker & Infrastructure
+.docker/
+docker-compose.override.yml
+dump.rdb # Local Redis dumps
+pgdata/  # Local Postgres volumes

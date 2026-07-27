@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-
+import { redisClient } from "./app";
 import app from "./app";
 import { PrismaClient } from "@prisma/client";
 
@@ -21,8 +21,17 @@ const shutdown = async () => {
   console.log("Gracefully shutting down...");
   server.close(async () => {
     console.log("HTTP server closed.");
-    await prisma.$disconnect();
-    console.log("Database connection closed.");
+    
+    try {
+      await prisma.$disconnect();
+      console.log("PostgreSQL connection closed.");
+      
+      await redisClient.quit();
+      console.log("Redis connection closed.");
+    } catch (err) {
+      console.error("Error during teardown:", err);
+    }
+    
     process.exit(0);
   });
 };

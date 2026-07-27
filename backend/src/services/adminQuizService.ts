@@ -63,10 +63,12 @@ export const createQuizAssessment = async (data: {
 export const generateQuizWithAi = async (chapterId: string, sourceText: string, questionCount: number = 5) => {
   const prompt = `
     You are an expert Computer Science professor. 
-    Based ONLY on the following text, generate ${questionCount} multiple-choice questions.
+    Based ONLY on the source text delimited by --- below, generate ${questionCount} multiple-choice questions.
     
     Source Text:
-    "${sourceText}"
+    ---
+    ${sourceText}
+    ---
 
     You MUST return the output strictly as a JSON array of objects matching this exact structure, with no markdown formatting or extra text:
     [
@@ -75,7 +77,7 @@ export const generateQuizWithAi = async (chapterId: string, sourceText: string, 
         "options": ["Option A", "Option B", "Option C", "Option D"],
         "correctAnswer": "The exact string of the correct option",
         "explanation": "A brief explanation of why this is correct",
-        "difficulty": "EASY" // Must be exactly "EASY", "MEDIUM", or "HARD"
+        "difficulty": "EASY" 
       }
     ]
   `;
@@ -83,7 +85,12 @@ export const generateQuizWithAi = async (chapterId: string, sourceText: string, 
   const aiResponse = await generateAiResponse(prompt, true);
 
   try {
-    const generatedQuestions = JSON.parse(aiResponse);
+    const cleanJson = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const generatedQuestions = JSON.parse(cleanJson);
+
+    if (!Array.isArray(generatedQuestions)) {
+      throw new Error("AI did not return an array");
+    }
 
     const prismaData = generatedQuestions.map((q: any) => ({
       chapterId,
@@ -91,7 +98,7 @@ export const generateQuizWithAi = async (chapterId: string, sourceText: string, 
       options: q.options,
       correctAnswer: q.correctAnswer,
       explanation: q.explanation || "",
-      difficulty: q.difficulty,
+      difficulty: q.difficulty || "MEDIUM",
       marks: q.difficulty === "HARD" ? 3 : q.difficulty === "MEDIUM" ? 2 : 1,
     }));
 

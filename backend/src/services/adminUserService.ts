@@ -80,10 +80,6 @@ export const toggleSuspension = async (userId: string, isSuspended: boolean) => 
     select: { id: true, fullName: true, isSuspended: true }
   });
 
-  // Note: Since we updated the login function previously, 
-  // suspended users will immediately be blocked upon their next login attempt.
-  // If you implement WebSockets later, you can force-logout them here.
-
   return {
     success: true,
     message: `User has been successfully ${isSuspended ? "suspended" : "unsuspended"}`,

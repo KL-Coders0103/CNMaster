@@ -1,11 +1,19 @@
 import multer from "multer";
+import os from "os";
 import { AppError } from "../utils/AppError";
 
-const storage = multer.memoryStorage();
+const memoryStorage = multer.memoryStorage();
+
+const diskStorage = multer.diskStorage({
+  destination: os.tmpdir(), 
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`);
+  }
+});
 
 export const uploadAvatar = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  storage: memoryStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, 
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -27,7 +35,7 @@ const assignmentMimeTypes = [
 ];
 
 export const uploadAssignment = multer({
-  storage,
+  storage: diskStorage,
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (assignmentMimeTypes.includes(file.mimetype)) {
@@ -39,7 +47,7 @@ export const uploadAssignment = multer({
 });
 
 export const uploadNote = multer({
-  storage,
+  storage: diskStorage, 
   limits: { fileSize: 15 * 1024 * 1024 }, 
   fileFilter: (req, file, cb) => {
     if (file.mimetype === "application/pdf" || file.mimetype.startsWith("image/")) {

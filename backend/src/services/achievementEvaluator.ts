@@ -61,26 +61,27 @@ export const evaluateQuizAchievements = async (
 };
 
 export const evaluateLearningAchievements = async (userId: string) => {
-  const readingProgress = await prisma.userReadingProgress.findMany({
-    where: { userId },
-    include: { note: true },
-  });
+  const [ completedNotesCount, uniqueChaptersData, revisionXpCount ] = await Promise.all([
 
-  const completedNotes = readingProgress.filter(
-    (rp) => rp.totalPages > 0 && (rp.currentPage / rp.totalPages) >= 0.9
-  );
-  const completedNotesCount = completedNotes.length;
+    prisma.userReadingProgress.count({
+      where: { userId, isCompleted: true}
+    }),
+    prisma.userReadingProgress.findMany({
+      where: {userId, isCompleted: true},
+      select: { note: { select: { chapterId: true}}},
+      distinct: ['noteId']
+    }),
+    prisma.xpTransaction.count({
+      where: { userId, source: "REVISION_COMPLETED"}
+    }),
+  ]);
 
   const uniqueCompletedChapters = new Set(
-    completedNotes.map((rp) => rp.note.chapterId)
+    uniqueChaptersData.map((rp) => rp.note.chapterId)
   ).size;
 
   const achievementsToUnlock: string[] = [];
 
-  const revisionXpCount = await prisma.xpTransaction.count({
-    where: { userId, source: "REVISION_COMPLETED" }
-  });
-  
   if (revisionXpCount >= 10) {
     achievementsToUnlock.push(ACHIEVEMENT_CODES.REVISION_KING);
   }
@@ -124,9 +125,9 @@ export const evaluateTimeAndRecoveryAchievements = async (userId: string) => {
     achievementsToUnlock.push(ACHIEVEMENT_CODES.WEEKEND_HUSTLER);
   }
 
-  const weakAreas = await prisma.weakArea.findMany({ where: { userId } });
+  const weakAreasCount = await prisma.weakArea.count({ where: { userId } });
   
-  if (weakAreas.length > 0) {
+  if (weakAreasCount) {
     const recentPerfectQuizzes = await prisma.quizAttempt.count({
       where: { 
         userId, 

@@ -30,6 +30,7 @@ export const broadcastNotification = async (data: {
 
   await prisma.notification.createMany({
     data: notificationData,
+    skipDuplicates: true, 
   });
 
   return { 

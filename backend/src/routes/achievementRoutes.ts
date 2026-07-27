@@ -6,6 +6,6 @@ const router = Router();
 
 router.use(authenticate);
 
-router.patch("/:achievementId/viewed", achievementController.markAchievementViewedController);
+router.patch("/:userAchievementId/viewed", achievementController.markAchievementViewedController);
 
 export default router;

@@ -1,18 +1,18 @@
-export const calculateLevel =(totalXp: number) => {
-        let level = 1;
-        let xpRequired = 100;
-        let currentLevelXp = totalXp;
-        
-        while ( currentLevelXp >= xpRequired) {
-        currentLevelXp -= xpRequired;
-        level++;
-        xpRequired += 50;
-    }
+export const calculateLevel = (totalXp: number) => {
+  const n = Math.floor((-75 + Math.sqrt(5625 + 100 * totalXp)) / 50);
 
-    return {
-        level,
-        totalXp,
-        currentLevelXp,
-        xpRequired,
-    };
+  const level = n + 1;
+
+  const baseTotalXp = 25 * (n * n) + 75 * n;
+
+  const currentLevelXp = totalXp - baseTotalXp;
+
+  const xpRequired = 100 + (n * 50);
+
+  return {
+    level,
+    totalXp,
+    currentLevelXp,
+    xpRequired,
+  };
 };

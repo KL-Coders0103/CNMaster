@@ -1,3 +1,4 @@
+import fs from "fs/promises";
 import { UploadApiResponse } from "cloudinary";
 import cloudinary from "../config/cloudinary";
 import prisma from "../config/prisma";
@@ -23,6 +24,7 @@ export const fetchAssignments = async (studentId: string, chapterId?: string, se
       },
     },
     orderBy: { dueDate: "asc" },
+    take: 50, 
   });
 
   const formattedAssignments = assignments.map((assignment) => ({
@@ -105,6 +107,7 @@ export const fetchSubmissionHistory = async (studentId: string) => {
       },
     },
     orderBy: { submittedAt: "desc" },
+    take: 50,
   });
 
   return { 
@@ -132,28 +135,29 @@ export const fetchUpcomingAssignment = async (studentId: string) => {
 };
 
 export const fetchAssignmentAnalytics = async (studentId: string) => {
-  const submissions = await prisma.assignmentSubmission.findMany({
-    where: { studentId },
-    include: { assignment: true },
-  });
 
-  const completed = submissions.length;
+  const [submissionStats, totalPublishedAssignments] = await Promise.all([
+    prisma.assignmentSubmission.aggregate({
+      where: { studentId },
+      _count: { id: true },
+      _avg: { marksObtained: true } 
+    }),
+    prisma.assignment.count({
+      where: { isPublished: true }
+    })
+  ]);
 
-  const pending = await prisma.assignment.count({
-    where: {
-      isPublished: true,
-      submissions: { none: { studentId } },
-    },
-  });
+  const completed = submissionStats._count.id;
+  const pending = Math.max(0, totalPublishedAssignments - completed);
+  
+  const averageMarks = submissionStats._avg.marksObtained 
+    ? Math.round(submissionStats._avg.marksObtained) 
+    : 0;
 
-  const reviewed = submissions.filter((item) => item.marksObtained !== null);
-
-  const averageMarks =
-    reviewed.length === 0
-      ? 0
-      : Math.round(reviewed.reduce((sum, item) => sum + (item.marksObtained ?? 0), 0) / reviewed.length);
-
-  const submissionRate = completed + pending === 0 ? 0 : Math.round((completed / (completed + pending)) * 100);
+  const totalPossible = completed + pending;
+  const submissionRate = totalPossible === 0 
+    ? 0 
+    : Math.round((completed / totalPossible) * 100);
 
   return { 
     success: true, 
@@ -163,31 +167,20 @@ export const fetchAssignmentAnalytics = async (studentId: string) => {
 
 export const uploadAssignmentFile = async (file: Express.Multer.File): Promise<UploadApiResponse> => {
   try {
-    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: "cn-master/assignment-submissions",
-          resource_type: "auto",
-        },
-        (error, result) => {
-          if (error) {
-            return reject(new AppError(`Cloudinary Upload Error: ${error.message}`, 500));
-          }
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: "cn-master/assignment-submissions",
+      resource_type: "auto",
+    });
 
-          if (!result) {
-            return reject(new AppError("Upload failed: No result from Cloudinary", 500));
-          }
-
-          resolve(result);
-        }
-      );
-
-      stream.end(file.buffer);
+    await fs.unlink(file.path).catch((err) => {
+      console.error(`[FS ERROR] Failed to clean up temp file: ${file.path}`, err);
     });
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    if (file.path) await fs.unlink(file.path).catch(() => {});
+    
     if (error instanceof AppError) throw error;
-    throw new AppError("An unexpected error occurred during file upload", 500);
+    throw new AppError(`Cloudinary Upload Error: ${error.message || "Unknown"}`, 500);
   }
 };

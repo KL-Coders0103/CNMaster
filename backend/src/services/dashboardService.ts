@@ -3,8 +3,8 @@ import { AppError } from "../utils/AppError";
 import { calculateLevel } from "../utils/xpUtils";
 import { formatLocalDate } from "../utils/dateUtils";
 import { MOTIVATIONS } from "../constants/motivationConstants";
-
 import { getLatestUnseenAchievement } from "./achievementService"; 
+import { redisClient } from "../app";
 
 export const getHomeDashboard = async (userId: string) => {
   const today = new Date();
@@ -47,15 +47,33 @@ export const getHomeDashboard = async (userId: string) => {
 
   if (!user) throw new AppError("User not found", 404);
 
-  const [notificationsCount, weakAreasRaw, upcomingAssessment, dailyActivities, latestAchievement] = await Promise.all([
-    prisma.notification.count({ where: { userId, isRead: false } }),
-    prisma.weakArea.findMany({
-      where: { userId },
-      include: { chapter: { select: { id: true, title: true } } },
-      orderBy: { mistakeCount: "desc" },
-      take: 5,
-    }),
-    prisma.assessment.findFirst({
+  const heatmapKey = `user:${userId}:heatmap`;
+  let activityHeatmap: any[] = [];
+  
+  const cachedHeatmap = await redisClient.get(heatmapKey);
+  
+  if (cachedHeatmap) {
+    activityHeatmap = JSON.parse(cachedHeatmap);
+  } else {
+    const dailyActivities = await prisma.dailyActivity.findMany({
+      where: { userId, date: { gte: ninetyDaysAgo } },
+      orderBy: { date: 'asc' }
+    });
+    activityHeatmap = dailyActivities.map(activity => ({
+      date: formatLocalDate(activity.date),
+      xp: activity.xpGained,
+    }));
+    await redisClient.set(heatmapKey, JSON.stringify(activityHeatmap), "EX", 60 * 60 * 6);
+  }
+
+  const assessmentCacheKey = `assessments:${user.year || 'all'}:${user.branch || 'all'}`;
+  let upcomingAssessment = null;
+  
+  const cachedAssessment = await redisClient.get(assessmentCacheKey);
+  if (cachedAssessment) {
+    upcomingAssessment = JSON.parse(cachedAssessment);
+  } else {
+    upcomingAssessment = await prisma.assessment.findFirst({
       where: {
         dueDate: { gt: new Date() },
         OR: [
@@ -63,19 +81,24 @@ export const getHomeDashboard = async (userId: string) => {
           { targetYear: null, targetBranch: null }
         ]
       },
-      orderBy: { dueDate: 'asc' }
-    }),
-    prisma.dailyActivity.findMany({
-      where: { userId, date: { gte: ninetyDaysAgo } },
-      orderBy: { date: 'asc' }
+      orderBy: { dueDate: 'asc' },
+      select: { id: true, title: true, type: true, dueDate: true }
+    });
+    if (upcomingAssessment) {
+      await redisClient.set(assessmentCacheKey, JSON.stringify(upcomingAssessment), "EX", 60 * 60);
+    }
+  }
+
+  const [notificationsCount, weakAreasRaw, latestAchievement] = await Promise.all([
+    prisma.notification.count({ where: { userId, isRead: false } }),
+    prisma.weakArea.findMany({
+      where: { userId },
+      include: { chapter: { select: { id: true, title: true } } },
+      orderBy: { mistakeCount: "desc" },
+      take: 5,
     }),
     getLatestUnseenAchievement(userId)
   ]);
-
-  const activityHeatmap = dailyActivities.map(activity => ({
-    date: formatLocalDate(activity.date),
-    xp: activity.xpGained,
-  }));
 
   const xpCurrent = user.userStats?.xpCurrent ?? 0;
   const xpData = calculateLevel(xpCurrent);
@@ -103,12 +126,8 @@ export const getHomeDashboard = async (userId: string) => {
     success: true,
     message: "Dashboard fetched successfully",
     data: {
-      user: {
-        fullName: user.fullName,
-      },
-      streak: {
-        days: user.userStats?.streakDays ?? 0,
-      },
+      user: { fullName: user.fullName },
+      streak: { days: user.userStats?.streakDays ?? 0 },
       xp: {
         totalXp: xpData.totalXp,
         current: xpData.currentLevelXp,
@@ -128,10 +147,8 @@ export const getHomeDashboard = async (userId: string) => {
       } : null,
       notificationsCount,
       upcomingAssessment: upcomingAssessment ? {
-        id: upcomingAssessment.id,
-        title: upcomingAssessment.title,
-        type: upcomingAssessment.type,
-        dueDate: upcomingAssessment.dueDate.toISOString(),
+        ...upcomingAssessment,
+        dueDate: new Date(upcomingAssessment.dueDate).toISOString() 
       } : null,
       activityHeatmap,
       achievement,

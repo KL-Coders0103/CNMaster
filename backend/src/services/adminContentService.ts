@@ -1,32 +1,38 @@
 import cloudinary from "../config/cloudinary";
-import streamifier from "streamifier";
 import prisma from "../config/prisma";
 import { AppError } from "../utils/AppError";
-
-const uploadToCloudinary = (fileBuffer: Buffer, folder: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "auto" }, 
-      (error, result) => {
-        if (result) resolve(result);
-        else reject(error);
-      }
-    );
-    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
-  });
-};
+import fs from "fs";
 
 export const uploadNoteResource = async (data: { title: string; chapterId: string }, file: Express.Multer.File) => {
   const chapter = await prisma.chapter.findUnique({ where: { id: data.chapterId } });
-  if (!chapter) throw new AppError("Chapter not found", 404);
+  if (!chapter) {
 
-  const cloudResponse = await uploadToCloudinary(file.buffer, "cn_master/notes");
+    if (file && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    throw new AppError("Chapter not found", 404);
+  }
+
+  let fileUrl = "";
+
+  try {
+    const cloudResponse = await cloudinary.uploader.upload(file.path, {
+      folder: "cn_master/notes",
+      resource_type: "auto",
+    });
+    fileUrl = cloudResponse.secure_url;
+  } catch (error) {
+    throw new AppError("Failed to upload resource to Cloudinary", 500);
+  } finally {
+
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+  }
 
   const newNote = await prisma.note.create({
     data: {
       title: data.title,
       chapterId: data.chapterId,
-      pdfUrl: cloudResponse.secure_url,
+      pdfUrl: fileUrl,
     },
   });
 

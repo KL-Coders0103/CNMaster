@@ -1,21 +1,22 @@
 import prisma from "../config/prisma";
 import { checkStreakAchievements } from "./achievementService";
+import { formatLocalDate } from "../utils/dateUtils";
 
 export const recalculateUserStreak = async (userId: string) => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const completedTasks = await prisma.plannerTask.findMany({
-    where: {
-      userId,
-      isCompleted: true,
-      completedAt: { gte: thirtyDaysAgo },
+  const activities = await prisma.dailyActivity.findMany({
+    where: { 
+      userId, 
+      date: { gte: thirtyDaysAgo },
+      xpGained: { gt: 0 } 
     },
-    select: { completedAt: true },
-    orderBy: { completedAt: "desc" },
+    select: { date: true },
+    orderBy: { date: "desc" },
   });
 
-  const uniqueDays = [...new Set(completedTasks.map((t) => t.completedAt!.toISOString().split("T")[0]))];
+  const uniqueDays = [...new Set(activities.map((a) => formatLocalDate(a.date)))];
 
   if (uniqueDays.length === 0) {
     await updateStreak(userId, 0);
@@ -23,12 +24,12 @@ export const recalculateUserStreak = async (userId: string) => {
   }
 
   let streak = 0;
-  const today = new Date().toISOString().split("T")[0];
+  const todayStr = formatLocalDate(new Date());
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterdayStr = formatLocalDate(yesterday);
 
-  if (uniqueDays[0] !== today && uniqueDays[0] !== yesterdayStr) {
+  if (uniqueDays[0] !== todayStr && uniqueDays[0] !== yesterdayStr) {
     await updateStreak(userId, 0);
     return 0;
   }
@@ -48,11 +49,10 @@ export const recalculateUserStreak = async (userId: string) => {
   }
 
   await updateStreak(userId, streak);
-  await checkStreakAchievements(userId, streak);
+  checkStreakAchievements(userId, streak).catch(console.error); 
 
   return streak;
 };
-
 
 const updateStreak = async (userId: string, streakDays: number) => {
   return await prisma.userStats.update({

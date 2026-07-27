@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
 import * as adminContentService from "../services/adminContentService";
 import { AppError } from "../utils/AppError";
 
-export const uploadNoteController = asyncHandler(async (req: Request, res: Response) => {
+export const uploadNoteController = async (req: Request, res: Response) => {
   const { title, chapterId } = req.body;
   const file = req.file;
 
@@ -12,4 +11,4 @@ export const uploadNoteController = asyncHandler(async (req: Request, res: Respo
 
   const result = await adminContentService.uploadNoteResource({ title, chapterId }, file);
   res.status(201).json(result);
-});
+};

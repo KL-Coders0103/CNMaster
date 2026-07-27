@@ -1,5 +1,4 @@
 import prisma from "../config/prisma";
-import { formatLocalDate } from "../utils/dateUtils";
 
 export const getWeeklyAnalytics = async (userId: string) => {
   const today = new Date();
@@ -11,16 +10,16 @@ export const getWeeklyAnalytics = async (userId: string) => {
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   endOfWeek.setHours(23, 59, 59, 999);
 
-  const [notesRead, assignmentsSubmitted, xpTransactions, readingActivities] = await Promise.all([
+  const [notesRead, assignmentsSubmitted, xpAggregate, readingActivities] = await Promise.all([
     prisma.userReadingProgress.count({
       where: { userId, updatedAt: { gte: startOfWeek, lte: endOfWeek } },
     }),
     prisma.assignmentSubmission.count({
       where: { studentId: userId, submittedAt: { gte: startOfWeek, lte: endOfWeek } },
     }),
-    prisma.xpTransaction.findMany({
+    prisma.xpTransaction.aggregate({
       where: { userId, createdAt: { gte: startOfWeek, lte: endOfWeek } },
-      select: { xpEarned: true },
+      _sum: { xpEarned: true },
     }),
     prisma.userReadingProgress.findMany({
       where: { userId, updatedAt: { gte: startOfWeek, lte: endOfWeek } },
@@ -28,7 +27,7 @@ export const getWeeklyAnalytics = async (userId: string) => {
     })
   ]);
 
-  const xpEarned = xpTransactions.reduce((sum, transaction) => sum + transaction.xpEarned, 0);
+  const xpEarned = xpAggregate._sum.xpEarned ?? 0;
 
   const weeklyTrend = [0, 0, 0, 0, 0, 0, 0];
   readingActivities.forEach((activity) => {
@@ -45,7 +44,7 @@ export const getWeeklyAnalytics = async (userId: string) => {
 };
 
 export const getLearningAnalytics = async (userId: string) => {
-  const [weakestArea, userStats, totalNotes, readingProgress, averageQuizRaw] = await Promise.all([
+  const [weakestArea, userStats, totalNotes, completedNotesCount, averageQuizRaw] = await Promise.all([
     prisma.weakArea.findFirst({
       where: { userId },
       orderBy: { mistakeCount: "desc" },
@@ -53,9 +52,9 @@ export const getLearningAnalytics = async (userId: string) => {
     }),
     prisma.userStats.findUnique({ where: { userId }, select: { streakDays: true } }),
     prisma.note.count(),
-    prisma.userReadingProgress.findMany({
-      where: { userId },
-      select: { currentPage: true, totalPages: true },
+
+    prisma.userReadingProgress.count({
+      where: { userId, isCompleted: true }, 
     }),
     prisma.quizAttempt.aggregate({
       where: { userId, status: "COMPLETED" },
@@ -73,11 +72,7 @@ export const getLearningAnalytics = async (userId: string) => {
 
   const strongestChapter = strongestArea?.quizAnswers[0]?.question?.chapter?.title || "Keep practicing!";
 
-  const completedNotes = readingProgress.filter(
-    (progress) => progress.totalPages > 0 && (progress.currentPage / progress.totalPages) >= 0.9
-  ).length;
-
-  const notesCompletion = totalNotes === 0 ? 0 : Math.round((completedNotes / totalNotes) * 100);
+  const notesCompletion = totalNotes === 0 ? 0 : Math.round((completedNotesCount / totalNotes) * 100);
   const averageQuizScore = averageQuizRaw._avg.score ? Math.round(averageQuizRaw._avg.score) : 0;
 
   return {

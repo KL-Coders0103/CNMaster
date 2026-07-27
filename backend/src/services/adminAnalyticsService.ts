@@ -1,38 +1,45 @@
 import prisma from "../config/prisma";
 import { AppError } from "../utils/AppError";
 
+let dashboardCache: { data: any, timestamp: number } | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export const getOverallDashboardStats = async () => {
+  const now = Date.now();
+
+  if (dashboardCache && (now - dashboardCache.timestamp) < CACHE_TTL_MS) {
+    return { success: true, data: dashboardCache.data };
+  }
+
   const [
     totalStudents,
     suspendedStudents,
     totalQuizzesTaken,
     totalAssignmentsSubmitted,
+    averageScoreAgg
   ] = await Promise.all([
     prisma.user.count({ where: { role: "student" } }),
     prisma.user.count({ where: { isSuspended: true } }),
     prisma.quizAttempt.count(),
-    prisma.assignmentSubmission.count(), 
+    prisma.assignmentSubmission.count(),
+    prisma.quizAttempt.aggregate({ _avg: { score: true } })
   ]);
 
-  const averageScoreAgg = await prisma.quizAttempt.aggregate({
-    _avg: { score: true },
-  });
-
-  return {
-    success: true,
-    data: {
-      users: {
-        total: totalStudents,
-        active: totalStudents - suspendedStudents,
-        suspended: suspendedStudents,
-      },
-      engagement: {
-        totalQuizzesTaken,
-        totalAssignmentsSubmitted,
-        platformAverageScore: averageScoreAgg._avg.score || 0,
-      },
+  const stats = {
+    users: {
+      total: totalStudents,
+      active: totalStudents - suspendedStudents,
+      suspended: suspendedStudents,
+    },
+    engagement: {
+      totalQuizzesTaken,
+      totalAssignmentsSubmitted,
+      platformAverageScore: averageScoreAgg._avg.score || 0,
     },
   };
+  dashboardCache = { data: stats, timestamp: now };
+
+  return { success: true, data: stats };
 };
 
 export const getAdminLeaderboard = async (limit: number) => {
@@ -44,28 +51,21 @@ export const getAdminLeaderboard = async (limit: number) => {
       year: true,
       branch: true,
       userStats: {
-        select: {
-          level: true,
-          xpCurrent: true,
-          streakDays: true,
-        },
+        select: { level: true, xpCurrent: true, streakDays: true },
       },
     },
-    orderBy: {
-      userStats: { xpCurrent: "desc" },
-    },
+    orderBy: { userStats: { xpCurrent: "desc" } },
     take: limit,
   });
 
-  return {
-    success: true,
-    data: topStudents,
-  };
+  return { success: true, data: topStudents };
 };
 
 export const getIndividualStudentAnalytics = async (userId: string) => {
   const student = await prisma.user.findUnique({
-    where: { id: userId },
+    where: {
+      id: userId
+    },
     select: {
       id: true,
       fullName: true,
@@ -78,32 +78,59 @@ export const getIndividualStudentAnalytics = async (userId: string) => {
         select: {
           id: true,
           score: true,
+          totalMarks: true,
+          totalQuestions: true,
+          correctAnswers: true,
+          wrongAnswers: true,
+          difficulty: true,
+          status: true,
           startedAt: true,
-          completedAt: true,
-          assessment: { select: { title: true, type: true } },
+          completedAt: true
         },
-        orderBy: { startedAt: "desc" },
-        take: 15,
+        orderBy: {
+          startedAt: "desc"
+        },
+        take: 15
       },
       readingProgress: {
         select: {
           lastOpenedAt: true,
-          timeSpent: true, 
-          note: { select: { title: true, chapter: { select: { title: true } } } },
+          currentPage: true, 
+          totalPages: true,  
+          isCompleted: true,
+          note: {
+            select: {
+              title: true,
+              chapter: {
+                select: {
+                  title: true
+                }
+              }
+            }
+          }
         },
-        orderBy: { lastOpenedAt: "desc" },
-        take: 15,
+        orderBy: {
+          lastOpenedAt: "desc"
+        },
+        take: 15
       },
-      submissions: {
+      assignmentSubmissions: { 
         select: {
           status: true,
           submittedAt: true,
           marksObtained: true,
-          assignment: { select: { title: true } },
+          assignment: {
+            select: {
+              title: true
+            }
+          }
         },
-        orderBy: { submittedAt: "desc" },
-      },
-    },
+        orderBy: {
+          submittedAt: "desc"
+        },
+        take: 15
+      }
+    }
   });
 
   if (!student) {
@@ -112,6 +139,6 @@ export const getIndividualStudentAnalytics = async (userId: string) => {
 
   return {
     success: true,
-    data: student,
+    data: student
   };
 };

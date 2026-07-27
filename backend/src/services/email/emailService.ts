@@ -6,16 +6,26 @@ import {
 } from "./templates/otpTemplate"; 
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: Number(process.env.SMTP_PORT) || 465,
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_APP_PASSWORD,
   },
+  pool: true, 
+  maxConnections: 5,
+  maxMessages: 100,
 });
 
-// Used during registration and resend OTP
-export const sendOtpEmail = async (email: string, otp: string) => {
-  await transporter.sendMail({
+const dispatchEmail = (mailOptions: nodemailer.SendMailOptions) => {
+  transporter.sendMail(mailOptions).catch((err) => {
+    console.error(`[EMAIL ERROR] Failed to send email to ${mailOptions.to}:`, err.message);
+  });
+};
+
+export const sendOtpEmail = (email: string, otp: string) => {
+  dispatchEmail({
     from: `"CN MASTER" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify Your CN Master Account",
@@ -23,9 +33,8 @@ export const sendOtpEmail = async (email: string, otp: string) => {
   });
 };
 
-// Used during the "Forgot Password" flow
-export const sendForgotPasswordOtp = async (email: string, otp: string) => {
-  await transporter.sendMail({
+export const sendForgotPasswordOtp = (email: string, otp: string) => {
+  dispatchEmail({
     from: `"CN MASTER Support" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "CN Master - Password Reset Request",
@@ -33,9 +42,8 @@ export const sendForgotPasswordOtp = async (email: string, otp: string) => {
   });
 };
 
-// Used after the user successfully resets their password
-export const sendPasswordResetSuccessEmail = async (email: string) => {
-  await transporter.sendMail({
+export const sendPasswordResetSuccessEmail = (email: string) => {
+  dispatchEmail({
     from: `"CN MASTER Security" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Your CN Master Password Has Been Changed",

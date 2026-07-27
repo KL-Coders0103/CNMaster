@@ -6,11 +6,10 @@ export const getChapters = async () => {
   const chapters = await prisma.chapter.findMany({
     orderBy: { title: "asc" },
   });
-
   return { success: true, message: "Chapters fetched successfully", data: chapters };
 };
 
-export const getAllNotes = async (search?: string, chapterId?: string) => {
+export const getAllNotes = async (search?: string, chapterId?: string, limit: number = 50) => {
   const notes = await prisma.note.findMany({
     where: {
       ...(search ? { title: { contains: search, mode: "insensitive" } } : {}),
@@ -18,6 +17,7 @@ export const getAllNotes = async (search?: string, chapterId?: string) => {
     },
     include: { chapter: true }, 
     orderBy: { createdAt: "desc" },
+    take: limit,
   });
 
   return {
@@ -35,21 +35,22 @@ export const getAllNotes = async (search?: string, chapterId?: string) => {
 };
 
 export const getNoteDetails = async (noteId: string, userId: string) => {
-  const note = await prisma.note.findUnique({
-    where: { id: noteId },
-    include: { chapter: true }, 
-  });
+  const [note, bookmark] = await Promise.all([
+    prisma.note.findUnique({
+      where: { id: noteId },
+      include: { chapter: true },
+    }),
+    prisma.userBookmark.findUnique({
+      where: { userId_noteId: { userId, noteId } },
+    })
+  ]);
 
   if (!note) throw new AppError("Note not found", 404);
 
-  await prisma.note.update({
+  prisma.note.update({
     where: { id: noteId },
     data: { views: { increment: 1 } },
-  });
-
-  const bookmark = await prisma.userBookmark.findUnique({
-    where: { userId_noteId: { userId, noteId } },
-  });
+  }).catch(console.error);
 
   return {
     success: true,
@@ -72,47 +73,53 @@ export const registerDownload = async (noteId: string) => {
     where: { id: noteId },
     data: { downloads: { increment: 1 } },
   });
-
   return { success: true, message: "Download registered successfully" };
 };
 
 export const bookmarkNote = async (userId: string, noteId: string) => {
-  const existing = await prisma.userBookmark.findUnique({
-    where: { userId_noteId: { userId, noteId } },
-  });
-
-  if (existing) throw new AppError("Already bookmarked", 400);
-
-  await prisma.userBookmark.create({
-    data: { userId, noteId },
-  });
-
-  return { success: true, message: "Note bookmarked successfully" };
+  try {
+    await prisma.userBookmark.create({
+      data: { userId, noteId },
+    });
+    return { success: true, message: "Note bookmarked successfully" };
+  } catch (error: any) {
+    if (error.code === 'P2002') throw new AppError("Already bookmarked", 400);
+    throw error;
+  }
 };
 
 export const removeBookmark = async (userId: string, noteId: string) => {
-  const existing = await prisma.userBookmark.findUnique({
-    where: { userId_noteId: { userId, noteId } },
-  });
-
-  if (!existing) throw new AppError("Bookmark not found", 404);
-
-  await prisma.userBookmark.delete({
-    where: { userId_noteId: { userId, noteId } },
-  });
-
-  return { success: true, message: "Bookmark removed successfully" };
+  try {
+    await prisma.userBookmark.delete({
+      where: { userId_noteId: { userId, noteId } },
+    });
+    return { success: true, message: "Bookmark removed successfully" };
+  } catch (error: any) {
+    if (error.code === 'P2025') throw new AppError("Bookmark not found", 404);
+    throw error;
+  }
 };
 
 export const saveReadingProgress = async (userId: string, noteId: string, currentPage: number, totalPages: number) => {
+  const isCompleted = totalPages > 0 && (currentPage / totalPages) >= 0.9;
+
   await prisma.userReadingProgress.upsert({
     where: { userId_noteId: { userId, noteId } },
-    update: { currentPage, totalPages, lastOpenedAt: new Date() },
-    create: { userId, noteId, currentPage, totalPages },
+    update: { 
+      currentPage, 
+      totalPages, 
+      lastOpenedAt: new Date(),
+      isCompleted 
+    },
+    create: { userId, noteId, currentPage, totalPages, isCompleted },
   });
 
-  evaluateLearningAchievements(userId).catch(console.error);
-  evaluateTimeAndRecoveryAchievements(userId).catch(console.error);
+  if (isCompleted) {
+    Promise.all([
+      evaluateLearningAchievements(userId),
+      evaluateTimeAndRecoveryAchievements(userId)
+    ]).catch(console.error);
+  }
 
   return { success: true, message: "Reading progress saved" };
 };
@@ -121,17 +128,15 @@ export const fetchReadingProgress = async (userId: string, noteId: string) => {
   const progress = await prisma.userReadingProgress.findUnique({
     where: { userId_noteId: { userId, noteId } },
   });
-
   return { success: true, data: progress };
 };
 
 export const fetchRecentNotes = async (userId: string) => {
   const notes = await prisma.userReadingProgress.findMany({
     where: { userId },
-    include: { note: true },
+    include: { note: { include: { chapter: true } } }, 
     orderBy: { lastOpenedAt: "desc" },
     take: 10,
   });
-
   return { success: true, data: notes };
 };

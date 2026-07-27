@@ -6,6 +6,8 @@ import cloudinary from "../config/cloudinary";
 import { UploadApiResponse } from "cloudinary";
 import { formatLocalDate } from "../utils/dateUtils";
 import { ChangePasswordInput, UpdateProfileInput, UpdateSettingsInput } from "../validations/profileValidation";
+import { toPublicUser } from "../utils/userResponse";
+import { redisClient } from "../app";
 
 export const getProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -51,7 +53,7 @@ export const updateProfile = async (userId: string, payload: UpdateProfileInput)
   return {
     success: true,
     message: "Profile updated successfully",
-    data: { user },
+    data: { user: toPublicUser(user) },
   };
 };
 
@@ -104,9 +106,15 @@ export const getUserAnalytics = async (userId: string) => {
 };
 
 export const getUserStreakAnalytics = async (userId: string) => {
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
   const [userStats, activities] = await Promise.all([
     prisma.userStats.findUnique({ where: { userId } }),
-    prisma.dailyActivity.findMany({ where: { userId }, orderBy: { date: "asc" } }),
+    prisma.dailyActivity.findMany({ 
+      where: { userId, date: { gte: ninetyDaysAgo } }, 
+      orderBy: { date: "asc" } 
+    }),
   ]);
 
   const totalActiveDays = activities.length;
@@ -126,32 +134,54 @@ export const getUserStreakAnalytics = async (userId: string) => {
 };
 
 export const getLeaderboard = async (userId: string) => {
-  const topStats = await prisma.userStats.findMany({
-    orderBy: [
-      { xpCurrent: 'desc' },
-      { level: 'desc' }
-    ],
-    take: 50,
-    include: {
-      user: { select: { id: true, fullName: true } }
+  const cacheKey = "leaderboard:global:top50";
+  let leaderboard: any[] = [];
+
+  const cachedData = await redisClient.get(cacheKey);
+
+  if (cachedData) {
+    leaderboard = JSON.parse(cachedData);
+  } else {
+    const topStats = await prisma.userStats.findMany({
+      orderBy: [
+        { xpCurrent: 'desc' },
+        { level: 'desc' }
+      ],
+      take: 50,
+      include: {
+        user: { select: { id: true, fullName: true, avatarUrl: true } }
+      }
+    });
+
+    leaderboard = topStats.map((stat, index) => ({
+      rank: index + 1,
+      id: stat.user.id,
+      fullName: stat.user.fullName,
+      avatarUrl: stat.user.avatarUrl,
+      level: stat.level,
+      xp: stat.xpCurrent,
+    }));
+
+    await redisClient.set(cacheKey, JSON.stringify(leaderboard), "EX", 15 * 60);
+  }
+
+  let currentUserRank = leaderboard.find((u) => u.id === userId)?.rank ?? null;
+
+  if (!currentUserRank) {
+    const userStats = await prisma.userStats.findUnique({ where: { userId }});
+    if (userStats) {
+      const higherRankedCount = await prisma.userStats.count({
+        where: { xpCurrent: { gt: userStats.xpCurrent } }
+      });
+      currentUserRank = higherRankedCount + 1;
     }
-  });
-
-  const leaderboard = topStats.map((stat, index) => ({
-    rank: index + 1,
-    id: stat.user.id,
-    fullName: stat.user.fullName,
-    level: stat.level,
-    xp: stat.xpCurrent,
-  }));
-
-  const currentUser = leaderboard.find((u) => u.id === userId);
+  }
 
   return {
     success: true,
     message: "Leaderboard fetched successfully",
     data: {
-      currentUserRank: currentUser?.rank ?? null,
+      currentUserRank,
       topUsers: leaderboard,
     },
   };
@@ -162,6 +192,7 @@ export const getUserActivityHistory = async (userId: string) => {
     where: { userId },
     orderBy: { date: "asc" },
     select: { date: true, xpGained: true },
+    take: 365 
   });
 
   return {
@@ -216,7 +247,19 @@ export const deleteProfile = async (userId: string, password?: string) => {
     }
   }
 
-  await prisma.user.delete({ where: { id: userId } });
+  await prisma.$transaction([
+    prisma.user.update({ 
+      where: { id: userId }, 
+      data: { 
+        deletedAt: new Date(), 
+        isSuspended: true,
+        email: `${user.email}_deleted_${Date.now()}` 
+      } 
+    }),
+    prisma.refreshToken.deleteMany({ where: { userId } })
+  ]);
+
+  await redisClient.set(`blacklist:${userId}`, "true", "EX", 15 * 60);
 
   return {
     success: true,
@@ -251,6 +294,7 @@ export const updateProfileSettings = async (userId: string, payload: UpdateSetti
     data: updatedSettings,
   };
 };
+
 export const uploadProfileAvatar = async (userId: string, file: Express.Multer.File) => {
   if (!file) {
     throw new AppError("Avatar is required", 400);
@@ -321,12 +365,17 @@ export const changePassword = async (userId: string, payload: ChangePasswordInpu
     throw new AppError("New Password cannot be the same as your current password", 400);
   }
 
-  const hashedPassword = await bcrypt.hash(payload.newPassword, 12);
+  const hashedPassword = await bcrypt.hash(payload.newPassword, 10);
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { password: hashedPassword },
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    }),
+    prisma.refreshToken.deleteMany({
+      where: { userId },
+    }),
+  ]);
 
   return {
     success: true,

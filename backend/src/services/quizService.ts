@@ -46,6 +46,7 @@ export const submitQuiz = async (userId: string, attemptId: string, answers: Ans
   const questionMap = new Map(questions.map((q) => [q.id, q]));
 
   let score = 0;
+  let trueTotalMarks = 0; 
   let correctAnswersCount = 0;
   const chapterMistakeCounts: Record<string, number> = {};
 
@@ -54,6 +55,8 @@ export const submitQuiz = async (userId: string, attemptId: string, answers: Ans
   const quizAnswersData = answers.map((answer) => {
     const question = questionMap.get(answer.questionId);
     if (!question) throw new AppError(`Invalid question ID: ${answer.questionId}`, 400);
+
+    trueTotalMarks += question.marks; 
 
     const isCorrect = question.correctAnswer === answer.selectedAnswer;
 
@@ -74,11 +77,10 @@ export const submitQuiz = async (userId: string, attemptId: string, answers: Ans
 
   const durationInSeconds = Math.floor((new Date().getTime() - attempt.startedAt.getTime()) / 1000);
 
-  const previousAttempts = await prisma.quizAttempt.count({where: {userId} });
-  const isFirstAttempt = previousAttempts === 1;
-
-  evaluateQuizAchievements(userId, quizChapterId, score, attempt.totalMarks, durationInSeconds, isFirstAttempt).catch(console.error);
-  evaluateTimeAndRecoveryAchievements(userId).catch(console.error);
+  const previousCompletedAttempts = await prisma.quizAttempt.count({
+    where: { userId, status: "COMPLETED" } 
+  });
+  const isFirstAttempt = previousCompletedAttempts === 0;
 
   const weakAreaUpserts = Object.entries(chapterMistakeCounts).map(([chapterId, count]) => {
     return prisma.weakArea.upsert({
@@ -88,39 +90,52 @@ export const submitQuiz = async (userId: string, attemptId: string, answers: Ans
     });
   });
 
-  const [updatedAttempt] = await prisma.$transaction([
-    prisma.quizAttempt.update({
-      where: { id: attemptId },
-      data: {
-        score,
-        totalMarks: score,
-        correctAnswers: correctAnswersCount,
-        wrongAnswers: answers.length - correctAnswersCount,
-        status: "COMPLETED",
-        completedAt: new Date(),
-      },
-    }),
-    prisma.quizAnswer.createMany({ data: quizAnswersData }),
-    ...weakAreaUpserts,
-  ]);
+  try {
+    const [updatedAttempt] = await prisma.$transaction([
+      prisma.quizAttempt.update({
+        where: { 
+          id: attemptId,
+          status: "IN_PROGRESS" 
+        },
+        data: {
+          score,
+          totalMarks: trueTotalMarks, 
+          correctAnswers: correctAnswersCount,
+          wrongAnswers: answers.length - correctAnswersCount,
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      }),
+      prisma.quizAnswer.createMany({ data: quizAnswersData }),
+      ...weakAreaUpserts,
+    ]);
 
-  let totalXpEarned = XP_REWARDS.QUIZ_ATTEMPTED + (correctAnswersCount * XP_REWARDS.QUIZ_CORRECT_ANSWER);
-  
-  const isPerfectScore = correctAnswersCount === attempt.totalQuestions;
-  if (isPerfectScore) {
-    totalXpEarned += XP_REWARDS.QUIZ_PERFECT_SCORE;
-  }
-
-  const xpResult = await awardXp(userId, totalXpEarned, "QUIZ_COMPLETED", attemptId);
-
-  return {
-    ...updatedAttempt,
-    gamification: {
-      xpEarned: totalXpEarned,
-      newLevel: xpResult.level,
-      isPerfectScore
+    let totalXpEarned = XP_REWARDS.QUIZ_ATTEMPTED + (correctAnswersCount * XP_REWARDS.QUIZ_CORRECT_ANSWER);
+    
+    const isPerfectScore = correctAnswersCount === attempt.totalQuestions;
+    if (isPerfectScore) {
+      totalXpEarned += XP_REWARDS.QUIZ_PERFECT_SCORE;
     }
-  };
+
+    const xpResult = await awardXp(userId, totalXpEarned, "QUIZ_COMPLETED", attemptId);
+
+    evaluateQuizAchievements(userId, quizChapterId, score, trueTotalMarks, durationInSeconds, isFirstAttempt).catch(console.error);
+    evaluateTimeAndRecoveryAchievements(userId).catch(console.error);
+
+    return {
+      ...updatedAttempt,
+      gamification: {
+        xpEarned: totalXpEarned,
+        newLevel: xpResult?.level ?? 1,
+        isPerfectScore
+      }
+    };
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      throw new AppError("Quiz was already submitted. (Double-tap prevented).", 409);
+    }
+    throw error;
+  }
 };
 
 export const fetchQuizResult = async (attemptId: string) => {
@@ -169,7 +184,6 @@ export const fetchAdaptiveQuiz = async (userId: string) => {
       where: { id: { notIn: existingQuestionIds } },
       take: 10 - questions.length,
     });
-
     questions = [...questions, ...extraQuestions];
   }
 

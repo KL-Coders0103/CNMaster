@@ -64,7 +64,7 @@ export const verifyForgotPasswordOtpSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   email: z.string().trim().email("Invalid email address").transform((email) => email.toLowerCase()),
-  otp: z.string().regex(/^[0-9]{6}$/, "OTP must be exactly 6 digits"),
+  resetToken: z.string().min(1, "Reset token is required"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -78,7 +78,6 @@ export const googleLoginSchema = z.object({
   idToken: z.string().min(1),
 });
 
-// Type Exports
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

@@ -1,29 +1,42 @@
+import Groq from "groq-sdk";
 import { AppError } from "../utils/AppError";
 
-const AI_BASE_URL = process.env.OLLAMA_URL;
-const AI_MODEL = process.env.AI_MODEL; 
+const groq = new Groq();
 
-export const generateAiResponse = async (prompt: string, expectJson: boolean = false): Promise<string> => {
+interface AiOptions {
+  model?: string;
+  expectJson?: boolean;
+}
+
+export const generateAiResponse = async (
+  prompt: string,
+  options: AiOptions = {}
+): Promise<string> => {
+  const model = options.model || "llama-3.1-8b-instant";
+  const expectJson = options.expectJson ?? false;
+
   try {
-    const response = await fetch(`${AI_BASE_URL}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        prompt: prompt,
-        stream: false,
-        format: expectJson ? "json" : undefined, 
-      }),
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      model: model,
+      response_format: expectJson ? { type: "json_object" } : { type: "text" },
+      temperature: 0.7, 
     });
 
-    if (!response.ok) {
-      throw new Error(`AI API responded with status ${response.status}`);
+    const responseText = chatCompletion.choices[0]?.message?.content || "";
+    return responseText;
+  } catch (error: any) {
+    console.error("Groq AI Error:", error);
+    
+    if (error.status === 429) {
+      throw new AppError("Rate limit exceeded on free tier. Please slow down.", 429);
     }
-
-    const data = await response.json();
-    return data.response;
-  } catch (error) {
-    console.error("AI Generation Error:", error);
-    throw new AppError("Failed to communicate with the AI engine. Ensure Ollama is running.", 500);
+    
+    throw new AppError("Failed to communicate with the Groq AI engine.", 500);
   }
 };
