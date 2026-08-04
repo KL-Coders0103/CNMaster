@@ -26,11 +26,15 @@ import {
   sendForgotPasswordOtp, 
   sendPasswordResetSuccessEmail 
 } from "./email/emailService"; 
+import { OAuth2Client } from 'google-auth-library';
 
 export enum OtpPurpose {
   registration = "registration",
   forgotPassword = "forgotPassword"
 }
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const getValidOtp = async (email: string, otp: string, purpose: OtpPurpose) => {
   const redisKey = `otp:${purpose}:${email}`;
@@ -426,8 +430,22 @@ export const resetPassword = async (resetData: ResetPasswordInput) => {
 
 export const googleLogin = async (googleData: GoogleLoginInput) => {
   const { idToken } = googleData;
-  const decodedToken = await admin.auth().verifyIdToken(idToken);
-  const { uid, email, name } = decodedToken;
+  
+  if (!GOOGLE_CLIENT_ID) {
+    throw new AppError("Server configuration error: Google Client ID is missing", 500);
+  }
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: GOOGLE_CLIENT_ID, 
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload) {
+    throw new AppError("Invalid Google Token", 400);
+  }
+
+  const { sub: uid, email, name } = payload;
 
   if (!email) throw new AppError("Email not found", 400);
 

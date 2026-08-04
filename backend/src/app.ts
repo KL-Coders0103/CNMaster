@@ -123,7 +123,7 @@ app.use(`${ADMIN_PREFIX}/quizzes`, adminQuizRoutes);
 app.use(`${ADMIN_PREFIX}/users`, adminUserRoutes);
 app.use(`${ADMIN_PREFIX}/ai`, adminAiRoutes);
 
-app.get("/health", (_req: Request, res: Response) => {
+app.get(`${API_PREFIX}/health`, (_req: Request, res: Response) => {
   res.status(200).json({ status: "ok", timestamp: new Date() });
 });
 
